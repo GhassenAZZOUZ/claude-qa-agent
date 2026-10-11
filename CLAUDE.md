@@ -13,10 +13,10 @@ When a message matches a WAY's trigger keywords (or the user types `/<skill>`), 
 | WAY | Skill | Triggers | Does |
 |---|---|---|---|
 | 0 | `qa-setup` | `qa setup`, `set up qa`, `init qa agent` | Prepare this project: runner, providers, `.env` values, access check |
-| 1 | `e2e-session` | `e2e it`, `test it`, `run e2e`, `start testing`, `qa this` | Requirements → browser tests → run → heal / file bugs → session report |
+| 1 | `e2e-session` | `e2e it`, `test it`, `run e2e`, `start testing`, `qa this`, ई2ई चलाओ, इसका टेस्ट करो, टेस्टिंग शुरू करो, इसकी QA करो | Requirements → browser tests → run → heal / file bugs → session report |
 | 2 | `api-session` | `api it`, `test api`, `run api tests`, `api test` | OpenAPI → API tests → run → bugs → API report |
-| 3 | `quick-bug` | `report it`, `log this`, `raise this`, `file this issue` | One-line bug → issue + regression test |
-| 4 | `write-tests` | `write it`, `write tests`, `generate test cases` | Requirements → test files + test-plan issue (no run) |
+| 3 | `quick-bug` | `report it`, `log this`, `raise this`, `file this issue`, बग रिपोर्ट करो, इश्यू दर्ज करो | One-line bug → issue + regression test |
+| 4 | `write-tests` | `write it`, `write tests`, `generate test cases`, टेस्ट लिखो, टेस्ट केस बनाओ, टेस्ट केस लिखो | Requirements → test files + test-plan issue (no run) |
 | 5 | `diagnose-ci` | `ci it`, `diagnose ci`, `fix ci`, `why did ci fail`, `check pipeline` | Failed CI run → root cause + fix |
 | 6 | `enhance-story` | `analyze us`, `enhance us`, `analyze and update us`, `improve us` | Score + rewrite a user story issue |
 | 7 | `benchmark` | `benchmark it`, `find competitors`, `compare apps`, `find alternatives` | Sourced competitor benchmark |
