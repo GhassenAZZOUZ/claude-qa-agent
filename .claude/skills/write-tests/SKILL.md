@@ -1,6 +1,6 @@
 ---
 name: write-tests
-description: WAY 4 — write test cases only, no execution. Use when the user says "write it", "write tests", "generate test cases" — requirements (text or a tracker issue), optional App/Spec/MR or PR → test files + test-plan issue.
+description: WAY 4 — write test cases only, no execution. Use when the user says "write it", "write tests", "generate test cases", "टेस्ट लिखो", "टेस्ट केस बनाओ", "टेस्ट केस लिखो" — requirements (text or a tracker issue), optional App/Spec/MR or PR → test files + test-plan issue.
 ---
 
 # WAY 4 — Write Test Cases Only
