@@ -1,6 +1,6 @@
 ---
 name: quick-bug
-description: 'WAY 3 — quick bug report from a one-line description. Use when the user says "report it", "log this", "raise this", "file this issue" with input like "[Area], [Precondition], [Step 1 > Step 2 > Observe: what you saw]". Files the bug and writes a regression test for it.'
+description: 'WAY 3 — quick bug report from a one-line description. Use when the user says "report it", "log this", "raise this", "file this issue", "बग रिपोर्ट करो", "इश्यू दर्ज करो" with input like "[Area], [Precondition], [Step 1 > Step 2 > Observe: what you saw]". Files the bug and writes a regression test for it.'
 ---
 
 # WAY 3 — Quick Bug Report
