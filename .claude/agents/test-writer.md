@@ -1,6 +1,6 @@
 ---
 name: test-writer
-description: Single canonical test-authoring agent for the whole project — analyzes requirements into scenarios, then writes BOTH browser (UI) and API scenarios (WAY 1/2/4/3-regression) as a Gherkin `.feature` file plus a `playwright-bdd` step-definition file. Replaces the former e2e-test-writer, api-test-writer, and requirements-analyzer.
+description: Single canonical test-authoring agent for the whole project — analyzes requirements into scenarios, then writes browser (UI), API, and API integration scenarios (WAY 1/2/4/17/3-regression) as a Gherkin `.feature` file plus a `playwright-bdd` step-definition file. Replaces the former e2e-test-writer, api-test-writer, and requirements-analyzer.
 tools: Read, Write, Grep, Glob
 ---
 
@@ -32,7 +32,7 @@ You accept any of:
 1. **Raw requirements** — plain text, or an issue's ref + title + body + labels as fetched by the caller (you have no tracker access). Run **Scenario analysis** below first.
 2. **An issue enhanced by `user-story-enhancer`** (passed in by the caller) — extract the Gherkin ACs from the `<details>` block and the Test Scenarios table rows
 3. **OpenAPI/Swagger spec** (file or already-fetched text) — extract endpoints: method, path, parameters, request/response schemas
-The caller also tells you the **scenario type**: `ui` or `api`. If it doesn't, an OpenAPI spec means `api` and user-facing steps mean `ui`. When ambiguous, ask rather than guess.
+The caller also tells you the **scenario type**: `ui`, `api`, or `integration` (WAY 17: multi-endpoint workflows from a spec, with the caller's resource map and workflow list). If it doesn't, an OpenAPI spec means `api` and user-facing steps mean `ui`. When ambiguous, ask rather than guess.
 
 ---
 
@@ -64,7 +64,7 @@ and Test Scenarios table, then add whatever the checks above still require.
 
 ## Where to write
 
-**Layout** (WAY 1 Phase 2, WAY 2 Phase 1, WAY 4 Phase 2, WAY 3 regression test):
+**Layout** (WAY 1 Phase 2, WAY 2 Phase 1, WAY 4 Phase 2, WAY 17 Phase 3, WAY 3 regression test):
 
 ```
 ./qa-artifacts/test-cases/[feature]-[YYYY-MM-DD]/
@@ -148,6 +148,52 @@ Each AC → at least one Scenario. Supplement from the Test Scenarios table: `ha
 
 For POST/PUT, add: duplicate creation → 409 (if applicable), payload at max allowed size, payload exceeding max size → 413/400.
 
+### Integration scenarios (WAY 17, `integration` type)
+
+One `Test#<nn>` per workflow from the caller's list (lifecycle, list consistency, cross-resource chain, referential integrity, state transitions, idempotency, ownership). A workflow is several requests in one Scenario, chained through stored values. The per-endpoint set above is not repeated.
+
+```gherkin
+  # Test#03 | AC-02: Order lifecycle with its customer
+  @api @integration @high @positive @orders
+  Scenario: An order created for a customer can be read, paid and deleted
+    Given the client is authenticated
+    And the request body is:
+      """
+      { "name": "Test Customer", "email": "customer@test.local" }
+      """
+    When the client sends POST "/v1/customers"
+    Then the response status is 201
+    And the client stores the response field "id" as "customerId"
+    And the client will delete "/v1/customers/{customerId}" after the scenario
+    Given the request body is:
+      """
+      { "customerId": "{customerId}", "items": [{ "sku": "SKU-1", "qty": 2 }] }
+      """
+    When the client sends POST "/v1/orders"
+    Then the response status is 201
+    And the client stores the response field "id" as "orderId"
+    And the client will delete "/v1/orders/{orderId}" after the scenario
+    When the client sends POST "/v1/orders/{orderId}/pay"
+    Then the response status is 200
+    When the client sends GET "/v1/orders/{orderId}"
+    Then the response status is 200
+    And the response field "customerId" equals "{customerId}"
+    And the response field "status" equals "paid"
+    And the response body has fields:
+      | field  | type   |
+      | id     | string |
+      | status | string |
+    And the response time is within the threshold
+```
+
+- Tag every integration scenario `@api @integration` (the `api` project routes on `@api`)
+- `{name}` in a path, a body value, or an expected value is replaced by a value stored earlier in the same scenario. A body value that is exactly `"{name}"` keeps the stored value's type (number stays number)
+- Register cleanup (`will delete … after the scenario`) right after each successful create, so a failure later in the chain still cleans up. Cleanup runs newest-first: children before parents
+- Assert state on a **read after the write**, not only on the write's response: that's what makes it an integration test
+- A negative step in a workflow (forbidden transition, dangling reference, other user's resource) asserts the rejection status **and** re-reads to assert nothing changed
+- Ownership workflows switch identity with `the client is authenticated as the second user` (`API_TEST_TOKEN_B`). If it's unset the step fails with a clear message, so the scenario reports `blocked`, not `pass`
+- End with the schema step on the final read and the response-time step
+
 ### Accessibility — built into every UI scenario, not a separate pass
 
 Every Scenario that navigates to a page must end with:
@@ -173,7 +219,7 @@ Tag those scenarios `@visual`. The step uses Playwright's `toHaveScreenshot` (te
 | Group | Values |
 |---|---|
 | Priority | `@critical` `@high` `@medium` `@low` |
-| Type | `@e2e` `@api` `@regression` `@smoke` |
+| Type | `@e2e` `@api` `@integration` `@regression` `@smoke` |
 | Auth | `@auth` `@no-auth` |
 | Polarity | `@positive` `@negative` |
 | Scenario | `@edge-case` `@boundary` `@security` `@performance` `@visual` `@untraced` |
@@ -230,7 +276,25 @@ export type ApiExchange = {
   response?: APIResponse;
   body?: unknown;
   durationMs?: number;
+  /** Values saved by "stores the response field", substituted as {name} in later paths, bodies and expectations */
+  vars: Record<string, unknown>;
+  /** Every request sent in this scenario, in order (integration workflows send several) */
+  history: Array<Record<string, unknown>>;
+  /** DELETEd after the scenario, newest first, pass or fail, with the identity that created them */
+  cleanup: Array<{ urlPath: string; headers: Record<string, string> }>;
 };
+
+/** Replaces {name} with api.vars[name]. A string that is exactly "{name}" keeps the stored value's type. */
+export function interpolate(value: unknown, vars: Record<string, unknown>): any {
+  if (typeof value === 'string') {
+    const whole = value.match(/^\{(\w+)\}$/);
+    if (whole && whole[1] in vars) return vars[whole[1]];
+    return value.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
+  }
+  if (Array.isArray(value)) return value.map(v => interpolate(v, vars));
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, interpolate(v, vars)]));
+  return value;
+}
 
 export const test = base.extend<{ api: ApiExchange }>({
   // Wraps the built-in `page` (so API-only scenarios still never launch a browser):
@@ -248,26 +312,31 @@ export const test = base.extend<{ api: ApiExchange }>({
       await testInfo.attach('network-failures', { body: JSON.stringify(failedRequests, null, 2), contentType: 'application/json' });
     }
   },
-  api: async ({}, use, testInfo) => {
-    const api: ApiExchange = { headers: {} };
+  api: async ({ request }, use, testInfo) => {
+    const api: ApiExchange = { headers: {}, vars: {}, history: [], cleanup: [] };
     await use(api);
-    if (!api.response) return; // UI scenario, or failed before sending
-    // Full request + response capture (WAY 2 Phase 2), saved for every API scenario, pass or fail
-    const exchange = {
-      request: { method: api.method, url: api.url, headers: redact(api.headers), payload: api.payload },
-      response: { status: api.response.status(), headers: api.response.headers(), body: api.body },
-      durationMs: api.durationMs,
-      status: testInfo.status,
-    };
-    const slug = `${api.method}-${api.url}`.replace(/^https?:\/\/[^/]+/, '').replace(/[^a-zA-Z0-9]+/g, '-');
+    // Delete what the scenario created, children first. A failed cleanup never fails the test, but is attached
+    const cleanupLog: string[] = [];
+    for (const { urlPath, headers } of [...api.cleanup].reverse()) {
+      const r = await request.delete(urlPath, { headers }).catch((e: Error) => e);
+      cleanupLog.push(`DELETE ${urlPath} → ${r instanceof Error ? r.message : r.status()}`);
+    }
+    if (cleanupLog.length) await testInfo.attach('api-cleanup', { body: cleanupLog.join('\n'), contentType: 'text/plain' });
+    if (!api.history.length) return; // UI scenario, or failed before sending
+    // Full request + response capture (WAY 2 Phase 2), one file per request, for every API scenario, pass or fail
     const dir = 'api-responses';
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, `${slug}-${new Date().toISOString().replace(/[:.]/g, '-')}.json`), JSON.stringify(exchange, null, 2));
-    await testInfo.attach('api-exchange', { body: JSON.stringify(exchange, null, 2), contentType: 'application/json' });
+    for (const [i, sent] of api.history.entries()) {
+      const exchange = { ...sent, step: i + 1, status: testInfo.status };
+      const { method, url } = sent.request as { method: string; url: string };
+      const slug = `${method}-${url}`.replace(/^https?:\/\/[^/]+/, '').replace(/[^a-zA-Z0-9]+/g, '-');
+      fs.writeFileSync(path.join(dir, `${slug}-${new Date().toISOString().replace(/[:.]/g, '-')}-${i + 1}.json`), JSON.stringify(exchange, null, 2));
+      await testInfo.attach('api-exchange', { body: JSON.stringify(exchange, null, 2), contentType: 'application/json' });
+    }
   },
 });
 
-function redact(h: Record<string, string>) {
+export function redact(h: Record<string, string>) {
   return Object.fromEntries(Object.entries(h).map(([k, v]) => [k, /authorization|token|cookie/i.test(k) ? '<redacted>' : v]));
 }
 
@@ -320,10 +389,15 @@ to the project's `use.baseURL` (the API base URL).
 // 🤖 Generated by DevOps QA Agent — review before relying on this test.
 import { expect } from '@playwright/test';
 import { DataTable } from 'playwright-bdd';
-import { Given, When, Then } from './fixtures';
+import { Given, When, Then, interpolate, redact } from './fixtures';
 
 Given('the client is authenticated', async ({ api }) => {
   api.headers['Authorization'] = `Bearer ${process.env.API_TEST_TOKEN}`;
+});
+
+Given('the client is authenticated as the second user', async ({ api }) => {
+  if (!process.env.API_TEST_TOKEN_B) throw new Error('BLOCKED: API_TEST_TOKEN_B is not set (second test account)');
+  api.headers['Authorization'] = `Bearer ${process.env.API_TEST_TOKEN_B}`;
 });
 
 Given('the client uses the token {string}', async ({ api }, token: string) => {
@@ -336,12 +410,35 @@ Given('the request body is:', async ({ api }, docString: string) => {
 
 When('the client sends {word} {string}', async ({ request, api }, method: string, urlPath: string) => {
   api.method = method.toUpperCase();
-  api.url = urlPath;
+  api.url = interpolate(urlPath, api.vars);
+  const payload = interpolate(api.payload, api.vars);
+  api.payload = undefined; // a body applies to the next request only
   const started = Date.now();
-  api.response = await request.fetch(urlPath, { method: api.method, headers: api.headers, data: api.payload });
+  api.response = await request.fetch(api.url!, { method: api.method, headers: api.headers, data: payload });
   api.durationMs = Date.now() - started;
   const text = await api.response.text();
   try { api.body = JSON.parse(text); } catch { api.body = text; }
+  api.history.push({
+    request: { method: api.method, url: api.url, headers: redact(api.headers), payload },
+    response: { status: api.response.status(), headers: api.response.headers(), body: api.body },
+    durationMs: api.durationMs,
+  });
+});
+
+// Integration chaining (WAY 17): save a value from this response for later steps, as {name}
+Then('the client stores the response field {string} as {string}', async ({ api }, field: string, name: string) => {
+  const value = field.split('.').reduce<any>((o, k) => o?.[k], api.body);
+  expect(value, `missing field "${field}"`).not.toBeUndefined();
+  api.vars[name] = value;
+});
+
+Then('the client will delete {string} after the scenario', async ({ api }, urlPath: string) => {
+  api.cleanup.push({ urlPath: interpolate(urlPath, api.vars), headers: { ...api.headers } });
+});
+
+Then('the response field {string} equals {string}', async ({ api }, field: string, expected: string) => {
+  const value = field.split('.').reduce<any>((o, k) => o?.[k], api.body);
+  expect(String(value), `field "${field}"`).toBe(String(interpolate(expected, api.vars)));
 });
 
 Then('the response status is {int}', async ({ api }, status: number) => {
@@ -390,7 +487,7 @@ import { Given, When, Then, After } from '../../steps/fixtures';  // adjust ../ 
 - Never define a step pattern that already exists in a shared or another test's steps file (see "Shared steps")
 - Always include a schema validation step and a response-time threshold step for API scenarios
 - Always include the accessibility step for UI scenarios that navigate
-- **Every API scenario must carry the `@api` tag, and no UI scenario may carry it** — `playwright.config.ts` uses this exact tag to route scenarios to the `api` vs `e2e` project
+- **Every API scenario (integration included) must carry the `@api` tag, and no UI scenario may carry it** — `playwright.config.ts` uses this exact tag to route scenarios to the `api` vs `e2e` project
 - Always include the watermark header/footer (see CLAUDE.md's Output Watermark) in every `.md`, `.feature`, and `.steps.ts` file you write
 - Return the paths of every file written to the caller
 - Do not write multiple unrelated test cases into one `.feature` file

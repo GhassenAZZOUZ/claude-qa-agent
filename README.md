@@ -6,7 +6,7 @@ An autonomous QA agent for DevOps-oriented teams. Give it an issue (GitLab, GitH
 
 [![validate](https://github.com/GhassenAZZOUZ/claude-qa-agent/actions/workflows/validate.yml/badge.svg)](https://github.com/GhassenAZZOUZ/claude-qa-agent/actions/workflows/validate.yml)
 
-**Quick start:** [Setup](#setup) · **Modes:** [Sixteen Modes](#sixteen-modes) · **See the output:** [examples/](examples/) · **Help wanted:** [Roadmap](#roadmap) · [Contributing](CONTRIBUTING.md)
+**Quick start:** [Setup](#setup) · **Modes:** [Seventeen Modes](#seventeen-modes) · **See the output:** [examples/](examples/) · **Help wanted:** [Roadmap](#roadmap) · [Contributing](CONTRIBUTING.md)
 
 ---
 
@@ -60,7 +60,7 @@ Every generated `.feature`/`.steps.ts` test file starts with the same attributio
 
 ---
 
-## Sixteen Modes
+## Seventeen Modes
 
 Each mode ("WAY") is a skill. Type a trigger phrase, or `/<skill>` directly (`/qa-agent:<skill>` with the plugin). Only the triggered WAY's instructions are loaded.
 
@@ -83,6 +83,7 @@ Each mode ("WAY") is a skill. Type a trigger phrase, or `/<skill>` directly (`/q
 | 14 | `traceability` | `trace it #148` | AC → tests → latest result → open bugs matrix |
 | 15 | `load-test` | `load test` | k6 smoke/load/stress/spike/soak with p95 + error-rate thresholds (never prod) |
 | 16 | `heal-tests` | `heal it` | Repair tests broken by UI renames, with approval |
+| 17 | `integration-tests` | `integration it` | OpenAPI spec → resource map → multi-endpoint workflow tests (lifecycle, chains, state, integrity), no run |
 
 ---
 
@@ -104,7 +105,7 @@ All tools except Claude are free and open source.
 
 ```
 devops-qa-agent/
-├── CLAUDE.md                          # Routing table (16 WAYs → skills) + shared rules + watermark policy
+├── CLAUDE.md                          # Routing table (17 WAYs → skills) + shared rules + watermark policy
 ├── README.md                          # This file
 ├── LICENSE · CONTRIBUTING.md · SECURITY.md · CODE_OF_CONDUCT.md · CHANGELOG.md
 ├── .claude-plugin/                    # plugin.json (manifest, bundled GitLab MCP, install-time settings) + marketplace.json
@@ -123,7 +124,7 @@ devops-qa-agent/
 ├── .claude/
 │   ├── settings.example.json          # Copy to settings.json and fill in
 │   ├── skills/
-│   │   ├── qa-setup/ e2e-session/ … heal-tests/   # WAY 0–16 skills, one folder each (see "Sixteen Modes")
+│   │   ├── qa-setup/ e2e-session/ … integration-tests/   # WAY 0–17 skills, one folder each (see "Sixteen Modes")
 │   │   ├── flaky-triage/flaky.mjs     # Run-history aggregator used by WAY 13
 │   │   ├── tracker/                   # Shared: provider-neutral issue / MR-PR / CI operations, labels, failures
 │   │   ├── provider-gitlab/ provider-github/ provider-jira/ provider-azure-devops/ provider-bitbucket/
@@ -375,6 +376,17 @@ heal it
 
 Reads Playwright's `error-context.md` (the page snapshot at the moment of failure) for each locator failure in the latest run, proposes the minimal step/Gherkin change, and applies it with your OK, re-running to confirm. It never changes expected values; an element that's truly gone is a bug, not a heal.
 
+### WAY 17 — Integration Tests from Spec
+
+```
+integration it
+Spec: https://api.staging.myapp.com/openapi.json
+Scope: orders, customers
+Issue: #148
+```
+
+Maps the spec into resources (CRUD endpoints, ID fields, dependencies, states), shows you the map to confirm, then writes one `@api @integration` test per workflow: lifecycle, list consistency, cross-resource chains, referential integrity, state transitions, idempotency, ownership across users. Values flow between calls (`stores the response field "id" as "orderId"` → `GET /orders/{orderId}`) and everything created is deleted after the scenario. Nothing runs; `file: true` also files a `test-plan` issue. Run them later with `api it` or `npx playwright test --project=api --grep @integration`.
+
 ---
 
 ## What the Agent Produces
@@ -418,6 +430,10 @@ Reads Playwright's `error-context.md` (the page snapshot at the moment of failur
 - `qa-artifacts/benchmarks/stories/[target]-[date]/index.md`: leader ranking, backlog, decision-needed, already-implemented
 - `qa-artifacts/benchmarks/stories/[target]-[date]/US-<n>.md`: one user story per gap
 - Optional issues: one `user-story` + `benchmark-gap` issue per story, plus a `benchmark` index issue
+
+**WAY 17 (Integration tests):**
+- `qa-artifacts/test-cases/[api-slug]-integration-[date]/Test#<nn>.{md,feature,steps.ts}` — one workflow per test case, tagged `@api @integration`, plus an index `.md`
+- Optional `test-plan` issue and MR/PR comment (`file: true`)
 
 **WAY 9–16:** verify report + issue comments/labels (9) · `qa-tests/` + CI include in the app repo (10) · MR/PR comment + `sessions/change-*.md` (11) · `releases/<milestone>-<date>.md` (12) · `@quarantine` tags + `flaky-test` issues + `sessions/flaky-*.md` (13) · `traceability/<ref>-<date>.md` (14) · `load-tests/<api>-<date>/` scripts + summaries (15) · healed test files + `sessions/heal-*.md` (16)
 
@@ -469,7 +485,7 @@ All 9 sub-agents live in `.claude/agents/`. They are invoked automatically by th
 ---
 
 ### `test-writer`
-**Used by:** WAY 1, WAY 2, WAY 3 (regression test), WAY 4
+**Used by:** WAY 1, WAY 2, WAY 3 (regression test), WAY 4, WAY 17 (integration workflows)
 
 The single test-authoring agent for the whole project — first analyzes the requirements into happy path / negative / edge / boundary / security / permission scenarios (mandatory input, ID, upload and numeric checks), then writes **both** browser and API scenarios, always as a `Test#<nn>.{md,feature,steps.ts}` triple: Gherkin `.feature` + a real `playwright-bdd` step-definition file (`page` fixture for UI, `request` fixture for API). Every UI scenario that navigates gets a built-in accessibility step (`@axe-core/playwright`, WCAG 2.0 A/AA + best-practice) — there's no separate a11y pass. Every API scenario is tagged `@api` and gets at least 9 mandatory cases per endpoint (happy path, auth failures, missing/invalid fields, IDOR, schema validation, perf threshold; +3 for POST/PUT). Replaces the former `e2e-test-writer`, `api-test-writer`, and `integration-test-writer`.
 
@@ -542,7 +558,7 @@ Builds, saves, and (WAY 1) files the session summary — counts, failed tests, p
 The single story body definition (story, Gherkin ACs, scenarios, Missing Information, DoD), so WAY 6 can re-score WAY 8's stories and `test-writer` can trace tests to stable AC IDs.
 
 ### WAY skills
-The 16 WAY skills hold each mode's full procedure; see **Sixteen Modes** above.
+The 17 WAY skills hold each mode's full procedure; see **Seventeen Modes** above.
 
 ---
 

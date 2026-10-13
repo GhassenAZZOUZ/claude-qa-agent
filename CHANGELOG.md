@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **WAY 17 `integration-tests`** (`integration it`): OpenAPI spec → resource map (CRUD, ID fields, dependencies, states), confirmed with the user → one `@api @integration` test per workflow (lifecycle, list consistency, cross-resource chain, referential integrity, state transitions, idempotency, cross-user ownership). Writes files only; no run, no filing unless `file: true`
+- `test-writer`: new `integration` scenario type. Shared API steps gain value chaining (`stores the response field … as …`, `{name}` substitution in paths/bodies/expectations, type-preserving), `the response field … equals …`, `will delete … after the scenario` (cleanup newest-first, with the creating identity) and `authenticated as the second user` (`API_TEST_TOKEN_B`)
+- `api` fixture captures every request of a scenario (one `api-responses/` file each), not just the last one; a request body applies to the next request only
+- Self-test runs an integration workflow too
+
 ## 1.1.1 — 2026-10-11
 
 Provider adapters checked against the real thing.

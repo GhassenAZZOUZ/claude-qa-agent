@@ -21,7 +21,7 @@ It must define these projects:
 | Project | Scope | `features` | `steps` | `tags` | `use.baseURL` |
 |---|---|---|---|---|---|
 | `e2e` | WAY 1 browser tests (and WAY 3 UI regressions) | `test-cases/**/*.feature` | `test-cases/**/*.steps.ts`, `steps/*.ts` | `not @api` | `process.env.BASE_URL` |
-| `api` | WAY 2 API tests (and WAY 3 API regressions) | `test-cases/**/*.feature` | same as `e2e` | `@api` | `process.env.API_BASE_URL` |
+| `api` | WAY 2 API tests, WAY 17 `@integration` workflows (and WAY 3 API regressions) | `test-cases/**/*.feature` | same as `e2e` | `@api` | `process.env.API_BASE_URL` |
 
 The config should also have:
 - a JSON reporter writing to `'runs/' + (process.env.RUN_ID ?? 'latest') + '/results.json'`
@@ -90,6 +90,7 @@ Put the paths (and, for inline ones, the first few lines) in that scenario's `ar
 ### Outcomes that are not product bugs
 
 - **`A snapshot doesn't exist … writing actual`** on a `@visual` step → `blocked`, `reason: "baseline created"`. The next run compares against it.
+- **A step throws `NOT IMPLEMENTED: …` or `BLOCKED: …`** (written by `test-writer` when it lacked a detail, or a missing env value such as `API_TEST_TOKEN_B`) → `blocked`, `reason:` the message after the prefix.
 - **Locator timeout** (`waiting for getByRole(…)`, `locator.click: Timeout`) → still `fail`, but set `failure_kind: locator`. The caller runs `test-healer` before filing a bug, because a renamed element is often a test problem, not a product one.
 - **`@quarantine`-tagged scenario** fails → `fail` with `quarantined: true`. Callers don't file bugs for these (see the `flaky-triage` skill).
 
