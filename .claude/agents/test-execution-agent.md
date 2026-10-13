@@ -21,7 +21,7 @@ It must define these projects:
 | Project | Scope | `features` | `steps` | `tags` | `use.baseURL` |
 |---|---|---|---|---|---|
 | `e2e` | WAY 1 UI E2E (browser) tests (and WAY 3 UI regressions) | `test-cases/**/*.feature` | `test-cases/**/*.steps.ts`, `steps/*.ts` | `not @api` | `process.env.BASE_URL` |
-| `api` | WAY 2 API tests, WAY 17 `@integration` workflows (and WAY 3 API regressions) | `test-cases/**/*.feature` | same as `e2e` | `@api` | `process.env.API_BASE_URL` |
+| `api` | WAY 2 API tests, WAY 17 `@integration` and `@e2e-api` workflows (and WAY 3 API regressions) | `test-cases/**/*.feature` | same as `e2e` | `@api` | `process.env.API_BASE_URL` |
 
 The config should also have:
 - a JSON reporter writing to `'runs/' + (process.env.RUN_ID ?? 'latest') + '/results.json'`

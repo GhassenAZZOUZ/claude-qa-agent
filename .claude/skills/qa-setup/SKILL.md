@@ -28,6 +28,7 @@ PROD_URL=
 FEATURE_BASE_URL=          # preview apps: FEATURE_BASE_URL/<branch>
 API_TEST_TOKEN=            # test-account token for API tests, never a real user's
 API_TEST_TOKEN_B=          # optional second test account (WAY 17 ownership workflows)
+# <SERVICE>_BASE_URL= / <SERVICE>_TOKEN=   # E2E API only, one pair per service (ORDERS_BASE_URL…)
 API_PERF_THRESHOLD_MS=2000
 
 # gitlab        GITLAB_PROJECT_ID=        (token: plugin settings, or .mcp.json from a clone)

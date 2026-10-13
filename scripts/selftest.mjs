@@ -3,7 +3,8 @@
 //   node scripts/selftest.mjs
 // Builds a throwaway runner in .selftest/ (gitignored), serves a tiny demo app,
 // and runs one UI scenario (+a11y, +visual baseline twice), one API scenario and one
-// integration workflow (chained values + cleanup).
+// integration workflow (chained values + cleanup) and one E2E API flow (two services,
+// per-service token, async effect polled).
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
@@ -90,12 +91,46 @@ Feature: Self-test integration
     And the response time is within the threshold
 `);
 fs.writeFileSync(path.join(tc, 'Test#03.steps.ts'), perTest);
+fs.writeFileSync(path.join(tc, 'Test#04.feature'), `# ${watermark}
+Feature: Self-test E2E API
+
+  @api @e2e-api @positive
+  Scenario: An order in one service reserves stock in another
+    Given the client is authenticated
+    And the request body is:
+      \"\"\"
+      { "sku": "SKU-1" }
+      \"\"\"
+    When the client sends POST "orders:/orders"
+    Then the response status is 201
+    And the client stores the response field "id" as "orderId"
+    And the client will delete "orders:/orders/{orderId}" after the scenario
+    And within 5 seconds GET "stock:/reservations?orderId={orderId}" has field "status" equal to "reserved"
+    And the response field "orderId" equals "{orderId}"
+    And within 2 seconds GET "stock:/reservations?orderId=999" returns status 404
+`);
+fs.writeFileSync(path.join(tc, 'Test#04.steps.ts'), perTest);
 
 // 3. Demo app
 fs.writeFileSync(path.join(dir, 'server.cjs'), `const items = {}; let next = 1;
+const orders = {}, reservations = {}; let nextOrder = 1;
 const json = (r, code, body) => { r.writeHead(code, { 'content-type': 'application/json' }); r.end(body === undefined ? '' : JSON.stringify(body)); };
 require('http').createServer((q, r) => {
   if (q.url === '/health') { r.writeHead(200, { 'content-type': 'application/json' }); return r.end('{"status":"ok"}'); }
+  // "orders" service: needs its own token; reserves stock asynchronously, like a queue consumer would
+  if (q.method === 'POST' && q.url === '/orders') {
+    if (q.headers.authorization !== 'Bearer orders-token') return json(r, 401, { error: 'orders token expected' });
+    const id = nextOrder++; orders[id] = { id, status: 'pending' };
+    setTimeout(() => { reservations[id] = { id: 100 + id, orderId: id, status: 'reserved' }; }, 400);
+    return json(r, 201, orders[id]);
+  }
+  const om = q.url.match(/^\\/orders\\/(\\d+)$/);
+  if (om && q.method === 'DELETE') { delete orders[om[1]]; if (reservations[om[1]]) reservations[om[1]].status = 'released'; return json(r, 204); }
+  // "stock" service
+  if (q.method === 'GET' && q.url.startsWith('/reservations')) {
+    const res = reservations[new URL(q.url, 'http://x').searchParams.get('orderId')];
+    return res ? json(r, 200, res) : json(r, 404, { error: 'not found' });
+  }
   const m = q.url.match(/^\\/items\\/(\\d+)$/);
   if (q.method === 'POST' && (q.url === '/items' || q.url === '/links')) {
     let raw = ''; q.on('data', c => raw += c);
@@ -117,7 +152,8 @@ fs.writeFileSync(cfg, fs.readFileSync(cfg, 'utf8').replace(
 ));
 
 // 4. Run
-const env = { BASE_URL: 'http://localhost:4329', API_BASE_URL: 'http://localhost:4329', API_TEST_TOKEN: 'selftest' };
+const env = { BASE_URL: 'http://localhost:4329', API_BASE_URL: 'http://localhost:4329', API_TEST_TOKEN: 'selftest',
+  ORDERS_BASE_URL: 'http://localhost:4329', ORDERS_TOKEN: 'orders-token', STOCK_BASE_URL: 'http://localhost:4329/' };
 run('npm install --no-audit --no-fund --silent');
 run(`npx playwright install${process.env.CI && process.platform === 'linux' ? ' --with-deps' : ''} chromium`);
 run('npx bddgen');
@@ -133,4 +169,5 @@ const cleanup = [];
 const walk = o => o && typeof o === 'object' && (o.name === 'api-cleanup' && o.body ? cleanup.push(Buffer.from(o.body, 'base64').toString()) : Object.values(o).forEach(walk));
 walk(JSON.parse(fs.readFileSync(path.join(dir, 'runs/api/results.json'), 'utf8')));
 if (!cleanup.some(c => c.includes('DELETE /items/1 → 204'))) throw new Error(`integration cleanup did not run: ${JSON.stringify(cleanup)}`);
-console.log('\n✅ self-test passed: templates compile, UI + a11y + visual + API + integration scenarios run');
+if (!cleanup.some(c => c.includes('DELETE http://localhost:4329/orders/1 → 204'))) throw new Error(`E2E API cleanup did not reach the orders service: ${JSON.stringify(cleanup)}`);
+console.log('\n✅ self-test passed: templates compile, UI + a11y + visual + API + integration + E2E API scenarios run');

@@ -83,7 +83,7 @@ Each mode ("WAY") is a skill. Type a trigger phrase, or `/<skill>` directly (`/q
 | 14 | `traceability` | `trace it #148` | AC → tests → latest result → open bugs matrix |
 | 15 | `load-test` | `load test` | k6 smoke/load/stress/spike/soak with p95 + error-rate thresholds (never prod) |
 | 16 | `heal-tests` | `heal it` | Repair tests broken by UI renames, with approval |
-| 17 | `integration-tests` | `integration it` | OpenAPI spec → resource map → multi-endpoint workflow tests (lifecycle, chains, state, integrity), no run |
+| 17 | `integration-tests` | `integration it` / `e2e api it` | One spec → API integration tests; several specs → E2E API tests across services (async effects polled), no run |
 
 ### Test levels
 
@@ -92,7 +92,7 @@ Each mode ("WAY") is a skill. Type a trigger phrase, or `/<skill>` directly (`/q
 | API (component) | One endpoint of one service | API | 2 | `@api` / `api` |
 | API integration | Several endpoints/resources of **one** service | API | 17 | `@api @integration` / `api` |
 | UI E2E | A user journey through the whole app | Browser | 1, 4 | `@e2e` / `e2e` |
-| E2E API | A business flow across **several services** (async effects, per-service auth) | API | _planned, see [Roadmap](#roadmap)_ | — |
+| E2E API | A business flow across **several services** (async effects, per-service auth) | API | 17 (several specs) | `@api @e2e-api` / `api` |
 
 The identifiers `e2e` (Playwright project, tag, issue label) and `e2e-session` keep their names for compatibility. They mean **UI E2E**.
 
@@ -387,7 +387,7 @@ heal it
 
 Reads Playwright's `error-context.md` (the page snapshot at the moment of failure) for each locator failure in the latest run, proposes the minimal step/Gherkin change, and applies it with your OK, re-running to confirm. It never changes expected values; an element that's truly gone is a bug, not a heal.
 
-### WAY 17 — API Integration Tests from Spec (single service)
+### WAY 17 — API Integration & E2E API Tests from Spec
 
 ```
 integration it
@@ -397,6 +397,22 @@ Issue: #148
 ```
 
 Maps the spec into resources (CRUD endpoints, ID fields, dependencies, states), shows you the map to confirm, then writes one `@api @integration` test per workflow: lifecycle, list consistency, cross-resource chains, referential integrity, state transitions, idempotency, ownership across users. Values flow between calls (`stores the response field "id" as "orderId"` → `GET /orders/{orderId}`) and everything created is deleted after the scenario. Nothing runs; `file: true` also files a `test-plan` issue. Run them later with `api it` or `npx playwright test --project=api --grep @integration`.
+
+E2E API, several services (one spec each):
+```
+e2e api it
+Specs:
+  orders   = https://orders.staging.myapp.com/openapi.json
+  payments = https://payments.staging.myapp.com/openapi.json
+  stock    = https://stock.staging.myapp.com/openapi.json
+Flows: checkout: order → payment → stock reservation
+```
+
+Adds a cross-service map (which ID flows where, sync or async; every link marked `(inferred)` until you confirm it) and writes `@api @e2e-api` flows: happy flow, propagation, failure & compensation, cross-service integrity, duplicate delivery. Requests name their service (`POST "orders:/v1/orders"` → `ORDERS_BASE_URL`, `ORDERS_TOKEN` if set). Async effects are polled until a deadline, never awaited with a sleep:
+```gherkin
+And within 10 seconds GET "stock:/v1/reservations?orderId={orderId}" has field "status" equal to "reserved"
+```
+These are slower and depend on every service being up: run them on a schedule, not on each MR (`--grep-invert @e2e-api`). Queue/DB assertions and contract tests (Pact) are out of scope.
 
 ---
 
@@ -444,6 +460,7 @@ Maps the spec into resources (CRUD endpoints, ID fields, dependencies, states), 
 
 **WAY 17 (Integration tests):**
 - `qa-artifacts/test-cases/[api-slug]-integration-[date]/Test#<nn>.{md,feature,steps.ts}` — one workflow per test case, tagged `@api @integration`, plus an index `.md`
+- `qa-artifacts/test-cases/[flow-slug]-e2e-api-[date]/…` — same, for several specs, tagged `@api @e2e-api`
 - Optional `test-plan` issue and MR/PR comment (`file: true`)
 
 **WAY 9–16:** verify report + issue comments/labels (9) · `qa-tests/` + CI include in the app repo (10) · MR/PR comment + `sessions/change-*.md` (11) · `releases/<milestone>-<date>.md` (12) · `@quarantine` tags + `flaky-test` issues + `sessions/flaky-*.md` (13) · `traceability/<ref>-<date>.md` (14) · `load-tests/<api>-<date>/` scripts + summaries (15) · healed test files + `sessions/heal-*.md` (16)
@@ -496,7 +513,7 @@ All 9 sub-agents live in `.claude/agents/`. They are invoked automatically by th
 ---
 
 ### `test-writer`
-**Used by:** WAY 1, WAY 2, WAY 3 (regression test), WAY 4, WAY 17 (integration workflows)
+**Used by:** WAY 1, WAY 2, WAY 3 (regression test), WAY 4, WAY 17 (integration and E2E API workflows)
 
 The single test-authoring agent for the whole project — first analyzes the requirements into happy path / negative / edge / boundary / security / permission scenarios (mandatory input, ID, upload and numeric checks), then writes **both** browser and API scenarios, always as a `Test#<nn>.{md,feature,steps.ts}` triple: Gherkin `.feature` + a real `playwright-bdd` step-definition file (`page` fixture for UI, `request` fixture for API). Every UI scenario that navigates gets a built-in accessibility step (`@axe-core/playwright`, WCAG 2.0 A/AA + best-practice) — there's no separate a11y pass. Every API scenario is tagged `@api` and gets at least 9 mandatory cases per endpoint (happy path, auth failures, missing/invalid fields, IDOR, schema validation, perf threshold; +3 for POST/PUT). Replaces the former `e2e-test-writer`, `api-test-writer`, and `integration-test-writer`.
 
@@ -598,7 +615,7 @@ Help wanted. Open a "New WAY / feature" issue to discuss first.
 
 - **More providers.** Bitbucket Data Center, Gitea/Forgejo, Linear, YouTrack: each is one `provider-<name>` skill (see CONTRIBUTING)
 - **Field-testing the provider adapters.** GitLab is verified against its API schemas and GitHub's read paths against a live repo; Jira, Azure DevOps and Bitbucket need real-project reports
-- **E2E API (multi-system).** Extend WAY 17 to several specs (`Specs: orders=…, payments=…`), one base URL + token per service (`ORDERS_BASE_URL`, `ORDERS_TOKEN`), service-prefixed requests (`POST "orders:/v1/orders"`), a polling step for async effects (`within 10 seconds GET "stock:/…" has field "status" equal to "reserved"`, via `expect.poll`, never fixed waits), cross-spec resource mapping confirmed by the user, and an `@e2e-api` tag so CI can run these slower tests on a schedule. Queue/DB assertions and contract testing (Pact) stay out of scope
+- **E2E API, beyond the API surface.** Assertions on queues/topics and databases, and consumer-driven contract tests (Pact), for flows WAY 17 can only observe through APIs
 - **Exploratory tester.** Explore an app with no requirements and report bugs and untested flows (needs a browser-driving MCP server scoped to that agent)
 - **Claude Code plugin packaging.** Install with one command instead of cloning
 - **More trigger languages.** French, Spanish, German, Portuguese… trigger phrases in the skill descriptions

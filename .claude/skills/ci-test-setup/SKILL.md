@@ -137,7 +137,7 @@ Use `ci.lint` from the code host's provider skill. GitLab has a real lint API. F
 ## Phase 4: Hand over (no commit, no push)
 Print:
 - the files written or changed (`git -C <app-repo> status --short`)
-- the variables and secrets to create, with where they go for that CI: `BASE_URL`, `API_BASE_URL`, `API_TEST_TOKEN`, plus `QA_USER`/`QA_PASSWORD` if using a setup project
+- the variables and secrets to create, with where they go for that CI: `BASE_URL`, `API_BASE_URL`, `API_TEST_TOKEN`, plus `QA_USER`/`QA_PASSWORD` if using a setup project, plus `<SERVICE>_BASE_URL`/`<SERVICE>_TOKEN` for each service if the suite has `@e2e-api` tests. Those run on the schedule only: add `--grep-invert @e2e-api` to the MR/PR job
 - the next steps: commit on a branch, open an MR/PR, and watch the QA job. `ci it` (WAY 5) explains failures, and the JUnit report names the `Test#<nn>`
 
 Keeping the copy current: re-run this WAY after `write-tests`/`e2e-session` add tests. It overwrites `qa-tests/` from `qa-artifacts/`, after showing the diff.

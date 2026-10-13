@@ -6,7 +6,11 @@
 - `test-writer`: new `integration` scenario type. Shared API steps gain value chaining (`stores the response field … as …`, `{name}` substitution in paths/bodies/expectations, type-preserving), `the response field … equals …`, `will delete … after the scenario` (cleanup newest-first, with the creating identity) and `authenticated as the second user` (`API_TEST_TOKEN_B`)
 - `api` fixture captures every request of a scenario (one `api-responses/` file each), not just the last one; a request body applies to the next request only
 - Self-test runs an integration workflow too
-- Naming: browser tests are called **UI E2E** everywhere (identifiers `e2e`, `@e2e`, `e2e-session` unchanged). README gains a **Test levels** table. WAY 17 is scoped to one service; **E2E API** (multi-system) is on the Roadmap
+- Naming: browser tests are called **UI E2E** everywhere (identifiers `e2e`, `@e2e`, `e2e-session` unchanged). README gains a **Test levels** table
+- **E2E API** in WAY 17 (`e2e api it`, several specs): per-service maps + a cross-service map (sync/async, every link `(inferred)` until confirmed) → `@api @e2e-api` flows: happy flow, propagation, failure & compensation, cross-service integrity, duplicate delivery
+- Shared API steps: service-prefixed requests (`"orders:/v1/orders"` → `ORDERS_BASE_URL`, `ORDERS_TOKEN` under default auth; a missing base URL fails as `BLOCKED:`), polling steps `within N seconds <METHOD> "<path>" has field … equal to …` / `returns status …` (`expect.poll` with backoff). `test-execution-agent` maps `BLOCKED:`/`NOT IMPLEMENTED:` step errors to `blocked`
+- `ci-test-setup`: per-service variables, `@e2e-api` kept off MR pipelines
+- Self-test runs an E2E API flow (two services, per-service token, async effect)
 
 ## 1.1.1 — 2026-10-11
 

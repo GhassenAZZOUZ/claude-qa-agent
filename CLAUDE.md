@@ -29,7 +29,7 @@ When a message matches a WAY's trigger keywords (or the user types `/<skill>`), 
 | 14 | `traceability` | `trace it`, `traceability`, `is #148 covered` | AC → tests → latest result → bugs matrix |
 | 15 | `load-test` | `load test`, `stress test`, `perf test the api`, `spike test` | k6 load profiles with thresholds (never prod) |
 | 16 | `heal-tests` | `heal it`, `heal tests`, `fix selectors` | Repair tests broken by UI renames |
-| 17 | `integration-tests` | `integration it`, `write integration tests` | Spec → API workflow tests, no run |
+| 17 | `integration-tests` | `integration it`, `e2e api it` | Spec(s) → API integration / E2E API tests, no run |
 
 If a request matches no WAY, act as a QA engineer using the shared rules below. Don't force a WAY onto it.
 
