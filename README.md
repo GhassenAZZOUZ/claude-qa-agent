@@ -371,6 +371,11 @@ trace it #148
 
 Each AC of the story → the tests whose `**Covers:**` line names it → their latest result → open bugs. Untested `must` ACs get an offer to write tests.
 
+Tests written from plain text (no story) are traced by folder, against their `R-NN` requirements:
+```
+trace it password-reset-2026-10-13
+```
+
 ### WAY 15 — Load Test
 
 ```
@@ -584,6 +589,25 @@ Builds, saves, and (WAY 1) files the session summary — counts, failed tests, p
 **Used by:** `user-story-enhancer` (WAY 6), `benchmark-gap-story-writer` (WAY 8)
 
 The single story body definition (story, Gherkin ACs, scenarios, Missing Information, DoD), so WAY 6 can re-score WAY 8's stories and `test-writer` can trace tests to stable AC IDs.
+
+### `requirements-analysis`
+**Used by:** WAY 1, 4, 14, 17 (inline) · `test-writer`, `user-story-enhancer`, `user-story-format`
+
+The single set of rules for analyzing requirements, so stories are scored against the same checks their tests are written from:
+1. **Intake**: text, issue, enhanced story or spec → one requirements model (requirements, actors, data elements, NFRs, open questions)
+2. **Readiness gate**: open Missing Information, unassertable outcomes, vague words ("fast", "easy"…), contradictions → questions asked **before** `test-writer` starts
+3. **Requirement IDs**: `AC-NN` from the story, never renumbered. Plain-text requirements get **`R-NN`**, derived one per testable statement, confirmed by you, saved in the test folder's index, so tests without a tracker story are traceable too:
+   ```markdown
+   **Source:** text
+   ## Requirements
+   | ID | Requirement | Priority |
+   |---|---|---|
+   | R-01 | A user can request a reset link from the login page | must |
+   | R-03 | The reset link expires after 1 hour | must |
+   ```
+   Tests cite them like ACs (`**Covers:** R-03`). `trace it <folder>` builds the same matrix as for a story
+4. **Scenario categories**: happy path, negative, edge case, boundary, security, permissions, performance, with their Gherkin tags and when each is required
+5. **Checklists per element**: input field, ID/resource, upload, numeric, auth/session, concurrency, backend failure
 
 ### WAY skills
 The 17 WAY skills hold each mode's full procedure; see **Seventeen Modes** above.

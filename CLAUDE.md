@@ -87,7 +87,6 @@ This is the single source of truth for the wording — sub-agents with a "return
 
 ## Global Rules
 
-- **Always confirm the environment URL** before starting any WAY that involves a URL
 - **Accessibility is built into every UI test**: `test-writer` adds an axe-core step to every scenario that navigates. There's no separate accessibility pass
 - **Never skip artifact capture**: screenshots, traces, console/network logs and API exchanges are captured inside the run by the config + `steps/fixtures.ts` (see `test-execution-agent`'s Failure capture)
 - **Not every failure is a bug.** Before filing, apply `bug-report`'s "When NOT to file": a visual baseline created, a quarantined test, a locator failure (heal it first with `test-healer`), or a network/setup block
@@ -104,4 +103,4 @@ This is the single source of truth for the wording — sub-agents with a "return
 
 ## Agents & Shared Skills
 
-Each WAY skill names the sub-agents it starts, and each agent's description says what it does. Shared skills used by several WAYs: `tracker` + `provider-*` (issues, MRs/PRs, CI on any provider), `bug-report` (severity × priority, issue body, when not to file), `session-report` (WAY 1/2 summary), `user-story-format` (the one story format).
+Each WAY skill names the sub-agents it starts, and each agent's description says what it does. Shared skills used by several WAYs: `tracker` + `provider-*` (issues, MRs/PRs, CI on any provider), `bug-report` (severity × priority, issue body, when not to file), `session-report` (WAY 1/2 summary), `user-story-format` (the one story format), `requirements-analysis` (intake, gate, AC/R IDs, scenarios).

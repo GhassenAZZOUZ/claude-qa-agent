@@ -15,10 +15,10 @@ You need two things. Ask before proceeding if either is missing:
 For an issue ref: fetch it (`issue.get`) and extract the title, body, labels, linked MRs/PRs and milestone. Use that as the requirements, and don't ask the user again.
 
 ## Phase 1: Check requirements
-If the issue has a **Missing Information** section with unanswered questions, ask the user to answer them first. Don't test against guesses. Scenario analysis itself happens inside `test-writer`.
+Apply the `requirements-analysis` skill inline (§1–3): build the requirements model from the text or issue, and run the readiness gate. In **one** message, ask the gate's open questions and, when the source has no ACs, show the derived `R-NN` Requirements table for confirmation. Wait for the answers and update the model. Don't test against guesses. Scenario selection (§4–5) happens inside `test-writer`.
 
 ## Phase 2: Write test cases
-1. Run `test-writer` (`ui` type) with the raw requirements (plus `visual: true` if the user asked for visual checks)
+1. Run `test-writer` (`ui` type) with the confirmed requirements model and the raw requirements (plus `visual: true` if the user asked for visual checks)
 2. It writes `Test#<nn>.{md,feature,steps.ts}` triples under `./qa-artifacts/test-cases/[feature]-[YYYY-MM-DD]/`, plus the index `.md`
 3. File a `test-plan` issue (the index content) and one `test-case` issue per test, each linked to the test plan (`issue.link`, per the `tracker` skill)
 

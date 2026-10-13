@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **New shared `requirements-analysis` skill**: the one definition of intake (text / issue / enhanced story / spec → requirements model), the readiness gate (Missing Information, unassertable outcomes, vague words, contradictions), requirement IDs, scenario categories + tags, and per-element checklists. `test-writer`, `user-story-enhancer`, `user-story-format`, WAY 1/4/14/17 and `benchmark-gap-story-writer` now use it instead of their own copies
+- **`R-NN` requirement IDs** for plain-text requirements (and issues without ACs): derived one per testable statement, confirmed by the user, saved as a `## Requirements` table in the test folder's index, cited by tests like ACs (`**Covers:** R-03`). `trace it <folder>` traces them
+- WAY 1/4/17 ask the gate's questions (and show the R-NN table) **before** starting `test-writer`, in one message
+- Fixes drift: stories now include `permissions` scenarios; test-writer's required categories now include `performance` (when a number is stated); tests now cover concurrency, session expiry, backend-failure and empty-upload cases; story scoring now checks IDOR, uploads and numerics. Expect WAY 6 scores to drop a little on re-run, since it detects more gaps
+- WAY 3 regression tests and spec-only API tests skip the gate (`**Covers:** untraced`, as before)
+
 - **WAY 17 `integration-tests`** (`integration it`): OpenAPI spec → resource map (CRUD, ID fields, dependencies, states), confirmed with the user → one `@api @integration` test per workflow (lifecycle, list consistency, cross-resource chain, referential integrity, state transitions, idempotency, cross-user ownership). Writes files only; no run, no filing unless `file: true`
 - `test-writer`: new `integration` scenario type. Shared API steps gain value chaining (`stores the response field … as …`, `{name}` substitution in paths/bodies/expectations, type-preserving), `the response field … equals …`, `will delete … after the scenario` (cleanup newest-first, with the creating identity) and `authenticated as the second user` (`API_TEST_TOKEN_B`)
 - `api` fixture captures every request of a scenario (one `api-responses/` file each), not just the last one; a request body applies to the next request only

@@ -77,7 +77,7 @@ Sort: must → should → could, then by effort ascending (quick wins first). Ke
 ### Step 5 — Write User Stories
 One story per gap. Split a gap into multiple stories if it mixes independent user goals (e.g. "iOS app" ≠ "biometric lock on iOS").
 
-`Read` `${CLAUDE_PLUGIN_ROOT}/.claude/skills/user-story-format/SKILL.md` and use its story body exactly, so WAY 6 can re-score these stories without rework. Put this header above its `## User Story` section:
+`Read` `${CLAUDE_PLUGIN_ROOT}/.claude/skills/user-story-format/SKILL.md` (and the `requirements-analysis` skill it points to for scenario types) and use its story body exactly, so WAY 6 can re-score these stories without rework. Put this header above its `## User Story` section:
 
 ```markdown
 # US-<n> — <short imperative title>

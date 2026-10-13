@@ -51,6 +51,7 @@ As a <actor>, I want <goal> so that <business value>.
 | `negative` | ... |
 | `boundary` | ... |
 | `security` | ... |
+| `permissions` | ... |
 | `performance` | ... |
 
 ---
@@ -84,15 +85,10 @@ Every story body ends with the Output Watermark footer from `CLAUDE.md`.
 - Number from AC-01 sequentially. `test-writer` traces tests back to these IDs (`**Covers:** AC-01`), so never renumber existing ACs on a re-run. Append new ones instead
 
 ## Test scenario types
-- `happy_path`: the primary success flow, no deviations
-- `edge_case`: valid but extreme input or state
-- `negative`: invalid input or unauthorized action
-- `boundary`: values at or just beyond defined limits
-- `security`: auth bypass, injection, data exposure attempts
-- `performance`: load, concurrency, or latency under realistic conditions
+The `Type` column uses the categories from `requirements-analysis` §4 (`happy_path`, `negative`, `edge_case`, `boundary`, `security`, `permissions`, `performance`), with the same meanings and the same "when required" rules. Writers `Read` `${CLAUDE_PLUGIN_ROOT}/.claude/skills/requirements-analysis/SKILL.md` for them. Don't list them here.
 
 ## Missing Information
-Questions that block writing tests, one per line. An empty section means
+Questions that block writing tests (the `requirements-analysis` §2 readiness gate), one per line. An empty section means
 "nothing blocking", so write `- none` rather than deleting the heading.
 `e2e-session` and `write-tests` stop and ask the user while any question here
 is unanswered.

@@ -12,7 +12,7 @@ You are a senior QA engineer with 10+ years of experience in agile software deve
 The issue's ref, title, and body **exactly as fetched** (it may already be an enhanced story from an earlier run).
 
 ## Workflow
-1. `Read` `${CLAUDE_PLUGIN_ROOT}/.claude/skills/user-story-format/SKILL.md`. It defines the story body, the AC rules and the scenario types
+1. `Read` `${CLAUDE_PLUGIN_ROOT}/.claude/skills/user-story-format/SKILL.md` (the story body and AC rules) and `${CLAUDE_PLUGIN_ROOT}/.claude/skills/requirements-analysis/SKILL.md` (the gate, scenario categories and element checklists, so the story is scored against the same rules its tests will be written from)
 2. Apply the scoring and issue detection below
 3. Return the three blocks under **Output**
 
@@ -37,7 +37,7 @@ The issue body is a **full replace**, so it always carries the watermark footer,
 ### Scoring (start at 100, deduct)
 - -20  Missing business value / "So that" clause
 - -15  No acceptance criteria of any kind
-- -10  Ambiguous language: fast, easy, simple, some, various, appropriate, good, nice
+- -10  Ambiguous language: a word from the vague-word list in `requirements-analysis` §2
 - -10  No error or exception handling mentioned
 - -10  No non-functional requirements (performance, security, accessibility, compatibility)
 - -5   Missing actor or role specification
@@ -49,9 +49,9 @@ The issue body is a **full replace**, so it always carries the watermark footer,
 
 **ACCEPTANCE_CRITERIA** — Entirely absent · Written as implementation tasks, not observable outcomes · Not independently testable · Missing the negative/failure path
 
-**EDGE_CASE** — Empty/null/zero values · Max/min boundaries · Concurrent access · Network failure/timeout · Session expiry · Unexpected input format
+**EDGE_CASE** — An applicable line of the `requirements-analysis` §5 checklist (per input field, ID, upload, numeric, auth/session, concurrency, backend failure) that the ACs leave unspecified
 
-**TESTABILITY** — Outcomes that cannot be asserted · No measurable success criterion · Missing data preconditions
+**TESTABILITY** — Anything that fails the `requirements-analysis` §2 readiness gate (unassertable outcome, contradiction, actorless permission) · Missing data preconditions. Each one also becomes a `## Missing Information` item
 
 **SCOPE** — Multiple independent user goals in one story · UI, API, and data concerns bundled without a seam
 

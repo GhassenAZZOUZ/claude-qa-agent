@@ -24,7 +24,7 @@ Specs:
 Service names are lowercase (`[a-z][a-z0-9-]*`). They become the request prefix (`"orders:/v1/orders"`) and the env keys (`ORDERS_BASE_URL`, `ORDERS_TOKEN`; `-` becomes `_`).
 
 **Optional:**
-- `Issue:` a requirements issue (fetched with `issue.get`, per the `tracker` skill), to trace workflows to its ACs
+- `Issue:` a requirements issue (fetched with `issue.get`, per the `tracker` skill), to trace workflows to its ACs, or to `R-NN` derived from it. Apply `requirements-analysis` (§1–3) to it and put its gate questions and Requirements table in the Phase 1 confirmation message
 - `Scope:` limit to spec `tags`, path prefixes, or operationIds (`Scope: orders, /v1/payments`)
 - `Flows:` (E2E API) the business flows to cover, in plain words (`checkout: order → payment → stock reservation → confirmation`). Without it, propose flows from the cross-service map
 - `file: true` file a `test-plan` issue with the index. `MR:`/`PR:` comment the plan on it (`change.comment`)
