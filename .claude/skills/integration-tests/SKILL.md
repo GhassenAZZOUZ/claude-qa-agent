@@ -1,11 +1,13 @@
 ---
 name: integration-tests
-description: WAY 17 — write API integration tests from an OpenAPI spec, no execution. Use when the user says "integration it", "write integration tests", "integration tests from spec", "generate integration tests" — spec → resource dependency map → multi-endpoint workflow scenarios (lifecycle, cross-resource chains, state transitions, referential integrity) → playwright-bdd test files.
+description: WAY 17 — write single-service API integration tests from one OpenAPI spec, no execution. Use when the user says "integration it", "write integration tests", "integration tests from spec", "generate integration tests" — spec → resource dependency map → multi-endpoint workflow scenarios (lifecycle, cross-resource chains, state transitions, referential integrity) → playwright-bdd test files.
 ---
 
 # WAY 17 — Integration Tests from Spec (write only)
 
 WAY 2 tests each endpoint in isolation. This WAY tests how endpoints **work together**: data written by one call is read, changed, or rejected by the next. It writes the tests and stops. Nothing is run, nothing is filed unless the user asks.
+
+Scope is **one service** (one spec, one `API_BASE_URL`). A business flow across several services (E2E API: multiple specs, async effects, per-service auth) is not covered yet; it's on the README Roadmap. If the user gives several specs, say so and offer to run this WAY on each spec separately.
 
 ## Step 1: Gather inputs
 **Required (ask if missing):** an OpenAPI 3.x / Swagger 2 spec (file path or URL).

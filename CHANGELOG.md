@@ -6,6 +6,7 @@
 - `test-writer`: new `integration` scenario type. Shared API steps gain value chaining (`stores the response field … as …`, `{name}` substitution in paths/bodies/expectations, type-preserving), `the response field … equals …`, `will delete … after the scenario` (cleanup newest-first, with the creating identity) and `authenticated as the second user` (`API_TEST_TOKEN_B`)
 - `api` fixture captures every request of a scenario (one `api-responses/` file each), not just the last one; a request body applies to the next request only
 - Self-test runs an integration workflow too
+- Naming: browser tests are called **UI E2E** everywhere (identifiers `e2e`, `@e2e`, `e2e-session` unchanged). README gains a **Test levels** table. WAY 17 is scoped to one service; **E2E API** (multi-system) is on the Roadmap
 
 ## 1.1.1 — 2026-10-11
 

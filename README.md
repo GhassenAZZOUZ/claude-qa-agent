@@ -22,7 +22,7 @@ From one user story (*"apply a discount code at checkout"*), the agent produces:
 |---|---|---|
 | Bug tracking | One tracker, hard-wired | **GitLab, GitHub, Jira or Azure Boards**: same workflows, your tracker |
 | Test management | Paid SaaS | **Markdown files in your repo + issues in your tracker** |
-| Browser tests | E2E only | E2E **+ accessibility (axe) built into every scenario** |
+| Browser tests | UI E2E only | UI E2E **+ accessibility (axe) built into every scenario** |
 | API testing | None | **`api it` mode — OpenAPI validation + functional tests** |
 | CI diagnosis | None | **`ci it`: root cause of a failed GitLab / GitHub Actions / Azure / Bitbucket run** |
 | After a bug is filed | Nothing | **`verify it` runs the bug's regression test and closes or reopens it** |
@@ -84,6 +84,17 @@ Each mode ("WAY") is a skill. Type a trigger phrase, or `/<skill>` directly (`/q
 | 15 | `load-test` | `load test` | k6 smoke/load/stress/spike/soak with p95 + error-rate thresholds (never prod) |
 | 16 | `heal-tests` | `heal it` | Repair tests broken by UI renames, with approval |
 | 17 | `integration-tests` | `integration it` | OpenAPI spec → resource map → multi-endpoint workflow tests (lifecycle, chains, state, integrity), no run |
+
+### Test levels
+
+| Level | Scope | Entry point | WAY | Tags / project |
+|---|---|---|---|---|
+| API (component) | One endpoint of one service | API | 2 | `@api` / `api` |
+| API integration | Several endpoints/resources of **one** service | API | 17 | `@api @integration` / `api` |
+| UI E2E | A user journey through the whole app | Browser | 1, 4 | `@e2e` / `e2e` |
+| E2E API | A business flow across **several services** (async effects, per-service auth) | API | _planned, see [Roadmap](#roadmap)_ | — |
+
+The identifiers `e2e` (Playwright project, tag, issue label) and `e2e-session` keep their names for compatibility. They mean **UI E2E**.
 
 ---
 
@@ -209,7 +220,7 @@ write it "Users can reset their password from the login page via an emailed link
 
 ## Usage Examples
 
-### WAY 1 — Full E2E Session
+### WAY 1 — Full UI E2E Session
 
 ```
 e2e it --env staging
@@ -376,7 +387,7 @@ heal it
 
 Reads Playwright's `error-context.md` (the page snapshot at the moment of failure) for each locator failure in the latest run, proposes the minimal step/Gherkin change, and applies it with your OK, re-running to confirm. It never changes expected values; an element that's truly gone is a bug, not a heal.
 
-### WAY 17 — Integration Tests from Spec
+### WAY 17 — API Integration Tests from Spec (single service)
 
 ```
 integration it
@@ -391,7 +402,7 @@ Maps the spec into resources (CRUD endpoints, ID fields, dependencies, states), 
 
 ## What the Agent Produces
 
-**WAY 1 (E2E session):**
+**WAY 1 (UI E2E session):**
 - `qa-artifacts/test-cases/[feature]-[date]/Test#<nn>.{md,feature,steps.ts}` — one Gherkin + playwright-bdd triple per test case, plus an index `.md`
 - `qa-artifacts/runs/[timestamp]/results.json` — execution results, including each scenario's built-in accessibility check
 - `qa-artifacts/runs/[RUN_ID]/artifacts/…` — failure screenshot, trace, `error-context.md`; console/network logs inside `results.json`
@@ -409,7 +420,7 @@ Maps the spec into resources (CRUD endpoints, ID fields, dependencies, states), 
 - `qa-artifacts/test-cases/regression/bug-<ref>/Test#01.{md,feature,steps.ts}` — regression test reproducing it, tagged `@regression`
 
 **WAY 4 (Write test cases):**
-- `qa-artifacts/test-cases/[feature]-[date]/Test#<nn>.{md,feature,steps.ts}` — E2E + API test cases, same triple format
+- `qa-artifacts/test-cases/[feature]-[date]/Test#<nn>.{md,feature,steps.ts}` — UI E2E + API test cases, same triple format
 - Tracker issue: one `test-plan` issue
 - Optional MR discussion comment with test plan summary
 
@@ -587,6 +598,7 @@ Help wanted. Open a "New WAY / feature" issue to discuss first.
 
 - **More providers.** Bitbucket Data Center, Gitea/Forgejo, Linear, YouTrack: each is one `provider-<name>` skill (see CONTRIBUTING)
 - **Field-testing the provider adapters.** GitLab is verified against its API schemas and GitHub's read paths against a live repo; Jira, Azure DevOps and Bitbucket need real-project reports
+- **E2E API (multi-system).** Extend WAY 17 to several specs (`Specs: orders=…, payments=…`), one base URL + token per service (`ORDERS_BASE_URL`, `ORDERS_TOKEN`), service-prefixed requests (`POST "orders:/v1/orders"`), a polling step for async effects (`within 10 seconds GET "stock:/…" has field "status" equal to "reserved"`, via `expect.poll`, never fixed waits), cross-spec resource mapping confirmed by the user, and an `@e2e-api` tag so CI can run these slower tests on a schedule. Queue/DB assertions and contract testing (Pact) stay out of scope
 - **Exploratory tester.** Explore an app with no requirements and report bugs and untested flows (needs a browser-driving MCP server scoped to that agent)
 - **Claude Code plugin packaging.** Install with one command instead of cloning
 - **More trigger languages.** French, Spanish, German, Portuguese… trigger phrases in the skill descriptions

@@ -1,9 +1,9 @@
 ---
 name: e2e-session
-description: WAY 1 — full browser E2E session. Use when the user says "e2e it", "test it", "run e2e", "start testing", "qa this" — requirements (text or a tracker issue) → Gherkin/playwright-bdd tests → run → heal or file bugs → session report.
+description: WAY 1 — full UI E2E (browser) session. Use when the user says "e2e it", "test it", "run e2e", "start testing", "qa this" — requirements (text or a tracker issue) → Gherkin/playwright-bdd tests → run → heal or file bugs → session report.
 ---
 
-# WAY 1 — Full E2E Session
+# WAY 1 — Full UI E2E Session
 
 Run CLAUDE.md **Step 0** (environment) first, and pick the providers per the `tracker` skill.
 
