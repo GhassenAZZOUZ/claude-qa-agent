@@ -1,0 +1,99 @@
+name: Provider live-run report
+description: Report a live run of a provider adapter (GitLab, Jira, Azure DevOps, Bitbucket) against a real test project
+title: "[Live run] <provider> — <edition and version>"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing a provider live. Run on a **throwaway test project**, never on production data.
+        Replace tokens, passwords, `Authorization` values and private org URLs with placeholders such as `<TOKEN>` everywhere below.
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Provider
+      options:
+        - GitLab
+        - Jira
+        - Azure DevOps
+        - Bitbucket Cloud
+    validations:
+      required: true
+  - type: input
+    id: edition
+    attributes:
+      label: Edition and version
+      description: e.g. gitlab.com or self-managed 17.4 · Jira Cloud or Data Center 9.12 · az 2.65 + azure-devops extension 1.0.1
+    validations:
+      required: true
+  - type: input
+    id: pairing
+    attributes:
+      label: QA_TRACKER and QA_CODE_HOST used
+      description: Any pairing is fine. Say which, e.g. QA_TRACKER=jira, QA_CODE_HOST=bitbucket
+      placeholder: QA_TRACKER=jira, QA_CODE_HOST=bitbucket
+    validations:
+      required: true
+  - type: checkboxes
+    id: ways
+    attributes:
+      label: WAYs run
+      options:
+        - label: "`qa setup` (access check)"
+        - label: "`report it` (WAY 3)"
+        - label: "`verify it` (WAY 9)"
+        - label: "`explore it` (WAY 18), including the `exploratory` label"
+        - label: "`ci it` on a failed run (WAY 5)"
+        - label: "`test pr` on an open pull request (WAY 11)"
+  - type: textarea
+    id: operations
+    attributes:
+      label: Operations
+      description: Mark each `pass`, `fail` or `not run`. A row says "verified live" once every **required** operation for its role passes. Optional ones may stay `not run`
+      value: |
+        **Tracker, required:** (skip this block for a code host only)
+        - `project.check`:
+        - `issue.create`:
+        - `issue.get`:
+        - `issue.update`:
+        - `issue.comment`:
+        - `issue.close`:
+        - `issue.reopen`:
+        - `issue.list`:
+        - `file.attach`:
+
+        **Tracker, optional:**
+        - `issue.link`:
+
+        **Code host, required:** (skip this block for a tracker only)
+        - `project.check`:
+        - `change.get`:
+        - `change.diff`:
+        - `change.comment`:
+        - `ci.get_run`:
+        - `ci.job_log`:
+
+        **Code host, optional:**
+        - `ci.latest_run`:
+        - `ci.lint`:
+    validations:
+      required: true
+  - type: textarea
+    id: failures
+    attributes:
+      label: Failures
+      description: For each failed operation, the exact command or HTTP request (method and path), the exit code or HTTP status, and the error body
+      render: text
+  - type: textarea
+    id: rejection
+    attributes:
+      label: Instance-specific rejection (trackers)
+      description: What you tried (a token without write scope, a custom required field, a workflow with no direct close transition) and what the agent reported. It should report the provider's error, not success
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirm
+      options:
+        - label: The run used a throwaway test project or repo
+          required: true
+        - label: This report contains no tokens, passwords, `Authorization` values or `.env` secrets
+          required: true
