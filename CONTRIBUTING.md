@@ -33,7 +33,7 @@ Thanks for helping QA engineers everywhere test faster. This project is a set of
 ## Adding a provider
 1. Add `.claude/skills/provider-<name>/SKILL.md`: map every operation in the `tracker` skill's table to that provider's tool (prefer its official CLI or MCP server), plus its ref format, body format, labels/tags and attachments. Mark unsupported operations explicitly
 2. Add the value to the `QA_TRACKER` / `QA_CODE_HOST` lists and the vocabulary table in `tracker`, the `.env` block in `qa-setup`, `.env.example`, and a `ci-test-setup` template if it has CI
-3. Read-only commands must be tested against a real project before merging; say in the PR which operations you ran live
+3. Read-only commands must be tested against a real project before merging; say in the PR which operations you ran live. To report a live run of an existing provider, use the **Provider live-run report** issue template
 
 ## Before opening a PR
 ```bash
