@@ -1,0 +1,42 @@
+{
+  "stats": {
+    "startTime": "2026-10-01T08:00:00.000Z"
+  },
+  "suites": [
+    {
+      "title": "Feature: Demo",
+      "specs": [
+        {
+          "title": "Baseline then stable",
+          "file": ".features-gen/e2e/test-cases/demo/baseline-then-stable.feature.spec.js",
+          "tags": [],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "passed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Baseline in short history",
+          "file": ".features-gen/e2e/test-cases/demo/baseline-in-short-history.feature.spec.js",
+          "tags": [],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "passed"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

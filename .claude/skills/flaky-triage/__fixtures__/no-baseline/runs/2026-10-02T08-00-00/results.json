@@ -1,0 +1,48 @@
+{
+  "stats": {
+    "startTime": "2026-10-02T08:00:00.000Z"
+  },
+  "suites": [
+    {
+      "title": "Feature: Demo",
+      "specs": [
+        {
+          "title": "Baseline then stable",
+          "file": ".features-gen/e2e/test-cases/demo/baseline-then-stable.feature.spec.js",
+          "tags": [],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "failed",
+                  "error": {
+                    "message": "Error: A snapshot doesn't exist at visual-baselines/e2e/checkout.png, writing actual."
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Baseline in short history",
+          "file": ".features-gen/e2e/test-cases/demo/baseline-in-short-history.feature.spec.js",
+          "tags": [],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "failed",
+                  "error": {
+                    "message": "Error: A snapshot doesn't exist at visual-baselines/e2e/checkout.png, writing actual."
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

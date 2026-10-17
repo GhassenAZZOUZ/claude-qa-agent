@@ -1,0 +1,42 @@
+{
+  "stats": {
+    "startTime": "2026-10-02T08:00:00.000Z"
+  },
+  "suites": [
+    {
+      "title": "Feature: Demo",
+      "specs": [
+        {
+          "title": "Two outcomes",
+          "file": ".features-gen/e2e/test-cases/demo/two-outcomes.feature.spec.js",
+          "tags": [],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "passed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Three outcomes",
+          "file": ".features-gen/e2e/test-cases/demo/three-outcomes.feature.spec.js",
+          "tags": [],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "passed"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

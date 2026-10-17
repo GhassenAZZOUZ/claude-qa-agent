@@ -1,0 +1,57 @@
+{
+  "stats": {
+    "startTime": "2026-10-02T08:00:00.000Z"
+  },
+  "suites": [
+    {
+      "title": "Feature: Demo",
+      "specs": [
+        {
+          "title": "Feature edited",
+          "file": ".features-gen/e2e/test-cases/demo/feature-edited.feature.spec.js",
+          "tags": [],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "passed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Untouched",
+          "file": ".features-gen/e2e/test-cases/demo/untouched.feature.spec.js",
+          "tags": [],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "passed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Steps edited",
+          "file": ".features-gen/e2e/test-cases/demo/steps-edited.feature.spec.js",
+          "tags": [],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "passed"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

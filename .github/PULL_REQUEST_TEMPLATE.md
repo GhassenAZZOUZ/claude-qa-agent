@@ -5,6 +5,7 @@
 ## How I tested it
 - [ ] `python scripts/validate.py`
 - [ ] `node scripts/selftest.mjs` (if `test-writer` templates or `runner-template/` changed)
+- [ ] `node --test ".claude/skills/flaky-triage/*.test.mjs"` (if `flaky-triage/flaky.mjs` changed)
 - [ ] Ran the WAY for real in Claude Code. What I ran and what happened:
 
 ## Checklist

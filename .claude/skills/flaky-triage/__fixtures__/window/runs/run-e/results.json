@@ -1,0 +1,30 @@
+{
+  "stats": {
+    "startTime": "2026-10-01T08:00:00.000Z"
+  },
+  "suites": [
+    {
+      "title": "Feature: Demo",
+      "specs": [
+        {
+          "title": "Recovered",
+          "file": ".features-gen/e2e/test-cases/demo/recovered.feature.spec.js",
+          "tags": [],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "failed",
+                  "error": {
+                    "message": "Error: expect(locator).toHaveText(expected) failed\n  at Test#01.steps.ts:12:3"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

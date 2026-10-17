@@ -1,0 +1,45 @@
+{
+  "stats": {
+    "startTime": "2026-10-01T08:00:00.000Z"
+  },
+  "suites": [
+    {
+      "title": "Feature: Demo",
+      "specs": [
+        {
+          "title": "Network blip in failures",
+          "file": ".features-gen/e2e/test-cases/demo/network-blip-in-failures.feature.spec.js",
+          "tags": [],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "failed",
+                  "error": {
+                    "message": "Error: expect(locator).toHaveText(expected) failed\n  at Test#01.steps.ts:12:3"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Network blip in short history",
+          "file": ".features-gen/e2e/test-cases/demo/network-blip-in-short-history.feature.spec.js",
+          "tags": [],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "passed"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

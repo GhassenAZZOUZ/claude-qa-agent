@@ -1,0 +1,35 @@
+{
+  "stats": {
+    "startTime": "2026-10-02T08:00:00.000Z"
+  },
+  "suites": [
+    {
+      "title": "demo",
+      "suites": [
+        {
+          "title": "Feature: Demo",
+          "specs": [
+            {
+              "title": "Mixed history",
+              "file": ".features-gen/e2e/test-cases/demo/mixed-history.feature.spec.js",
+              "tags": [],
+              "tests": [
+                {
+                  "projectName": "e2e",
+                  "results": [
+                    {
+                      "status": "failed",
+                      "error": {
+                        "message": "Error: expect(locator).toHaveText(expected) failed\n  at Test#01.steps.ts:12:3"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
