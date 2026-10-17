@@ -18,7 +18,8 @@ fs.rmSync(dir, { recursive: true, force: true });
 fs.cpSync(path.join(root, 'runner-template'), dir, { recursive: true });
 
 // 1. Templates come from test-writer.md: the single source of truth
-const writer = fs.readFileSync(path.join(root, '.claude/agents/test-writer.md'), 'utf8');
+// Normalize line endings: a Windows clone with core.autocrlf=true checks the file out with CRLF
+const writer = fs.readFileSync(path.join(root, '.claude/agents/test-writer.md'), 'utf8').replace(/\r\n/g, '\n');
 const blocks = [...writer.matchAll(/```typescript\n([\s\S]*?)```/g)].map(m => m[1]);
 if (blocks.length < 4) throw new Error(`expected 4 typescript blocks in test-writer.md, found ${blocks.length}`);
 const [fixtures, common, api, perTest] = blocks;
