@@ -1,6 +1,6 @@
 # DevOps QA Agent
 
-An autonomous QA agent for DevOps-oriented teams. Give it an issue (GitLab, GitHub, Jira, Azure Boards), a staging URL, or a failing CI run — it writes test cases, executes them in a real browser, tests your APIs, runs accessibility checks, and files bugs to GitLab Issues, all without you lifting a finger.
+An autonomous QA agent for DevOps-oriented teams. Give it an issue (GitLab, GitHub, Jira, Azure Boards), a staging URL, or a failing CI run — it writes test cases, executes them in a real browser, tests your APIs, runs accessibility checks, and files bugs to your tracker, all without you lifting a finger.
 
 > Built with Claude Code · Playwright + playwright-bdd · works with GitLab, GitHub, Jira, Azure DevOps & Bitbucket · MIT licensed
 
@@ -12,7 +12,7 @@ An autonomous QA agent for DevOps-oriented teams. Give it an issue (GitLab, GitH
 
 ## See It in Action
 
-From one user story (*"apply a discount code at checkout"*), the agent produces: a [test plan + runnable Gherkin/Playwright tests](examples/test-cases/checkout-discount-2026-10-09/), a [developer-ready bug](examples/bug-issue.md) for the failure it found, a [session report](examples/session-report.md), an [MR impact comment](examples/mr-impact-comment.md), a [traceability matrix](examples/traceability.md) and a [release go/no-go](examples/release-readiness.md). All on a fictional shop; see [examples/](examples/).
+From one user story (*"apply a discount code at checkout"*), the agent produces: a [test plan + runnable Gherkin/Playwright tests](examples/test-cases/checkout-discount-2026-10-09/), a [developer-ready bug](examples/bug-issue.md) for the failure it found, a [session report](examples/session-report.md), an [MR impact comment](examples/mr-impact-comment.md), a [traceability matrix](examples/traceability.md) and a [release go/no-go](examples/release-readiness.md). Then it [verifies fixes](examples/verify-fix-summary.md), [triages flaky tests](examples/flaky-triage.md), [load-tests the API](examples/load-test-report.md), [heals broken selectors](examples/heal-tests.md), writes [integration](examples/integration-tests/orders-api-integration-2026-10-17/) and [multi-service E2E API](examples/integration-tests/checkout-e2e-api-2026-10-17/) tests, and [explores the app](examples/explore-session.md) without written requirements. All on a fictional shop; see [examples/](examples/).
 
 ---
 
@@ -46,6 +46,8 @@ Pick where your **issues** live and where your **code + CI** live, separately. P
 | **Bitbucket Cloud** | — (use Jira) | ✅ pull requests, Pipelines | REST API |
 
 Every WAY calls one provider-neutral contract (the `tracker` skill). A `provider-<name>` skill maps it to that provider, including its refs (`#143`, `SHOP-143`, `!87`), body format (Markdown, Jira wiki, Azure HTML), labels vs tags, and attachments. Adding a provider means adding one skill. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+**Tested live so far:** GitHub (read and write paths, v1.1.1). GitLab is checked against its MCP server's schemas, and Jira, Azure DevOps and Bitbucket against their published API specs. Live runs on those four are tracked in [#9](https://github.com/GhassenAZZOUZ/claude-qa-agent/issues/9). If you use one, a report helps.
 
 ---
 
@@ -129,6 +131,7 @@ devops-qa-agent/
 │   ├── validate.py                    # Frontmatter, names, CLAUDE.md references + size, triggers, plugin manifest, watermarks (CI)
 │   ├── session-context.mjs            # Plugin hook: loads CLAUDE.md rules into each session
 │   └── selftest.mjs                   # Runs test-writer's templates end to end on a demo app (CI)
+├── examples/                          # Illustrative output of every WAY on a fictional shop
 ├── evals/                             # `claude plugin eval` cases: routing, readiness gate, spec boundaries, WAY 17 and WAY 18 handoff end to end (CI: weekly / `run-evals` label)
 ├── .github/                           # CI workflows (validate, evals), issue + PR templates
 ├── .env.example                       # Copy to .env and fill in your values
@@ -145,11 +148,13 @@ devops-qa-agent/
 │   │   ├── provider-gitlab/ provider-github/ provider-jira/ provider-azure-devops/ provider-bitbucket/
 │   │   ├── bug-report/                # Shared: severity × priority + bug body + when not to file
 │   │   ├── session-report/            # Shared: WAY 1/2 session summary
-│   │   └── user-story-format/         # Shared: the one user-story body format
-│   └── agents/                        # 9 sub-agents (isolated context)
-│       ├── test-writer.md                 # Requirements → Test#<nn> Gherkin + playwright-bdd (UI/API/visual)
+│   │   ├── user-story-format/         # Shared: the one user-story body format
+│   │   └── requirements-analysis/     # Shared: intake, readiness gate, requirement IDs, scenario categories
+│   └── agents/                        # 10 sub-agents (isolated context)
+│       ├── test-writer.md                 # Requirements → Test#<nn> Gherkin + playwright-bdd (UI/API/integration/E2E API/visual)
 │       ├── test-execution-agent.md        # Runs suites, captures artifacts, classifies outcomes
 │       ├── test-healer.md                 # Repairs locator failures from error-context snapshots
+│       ├── exploratory-tester.md          # Explores the app live (Playwright MCP) → test-writer handoff
 │       ├── mr-test-impact.md              # MR diff → affected tests + uncovered changes
 │       ├── load-test-writer.md            # k6 scripts + smoke run
 │       ├── ci-diagnostician.md            # Fetches + diagnoses failed pipelines
@@ -680,7 +685,7 @@ The 18 WAY skills hold each mode's full procedure; see **Eighteen Modes** above.
 Help wanted. Open a "New WAY / feature" issue to discuss first.
 
 - **More providers.** Bitbucket Data Center, Gitea/Forgejo, Linear, YouTrack: each is one `provider-<name>` skill (see CONTRIBUTING)
-- **Field-testing the provider adapters.** GitLab is verified against its API schemas and GitHub's read paths against a live repo; Jira, Azure DevOps and Bitbucket need real-project reports
+- **Field-testing the provider adapters.** GitHub's read and write paths are tested live; GitLab, Jira, Azure DevOps and Bitbucket need real-project reports. Pick one: [#27 GitLab](https://github.com/GhassenAZZOUZ/claude-qa-agent/issues/27) · [#28 Jira](https://github.com/GhassenAZZOUZ/claude-qa-agent/issues/28) · [#29 Azure DevOps](https://github.com/GhassenAZZOUZ/claude-qa-agent/issues/29) · [#30 Bitbucket](https://github.com/GhassenAZZOUZ/claude-qa-agent/issues/30)
 - **E2E API, beyond the API surface.** Assertions on queues/topics and databases, and consumer-driven contract tests (Pact), for flows WAY 17 can only observe through APIs
 - **Mobile.** Appium or Maestro runner alongside Playwright
 
