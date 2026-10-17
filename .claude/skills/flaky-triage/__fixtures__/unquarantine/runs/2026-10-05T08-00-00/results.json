@@ -1,0 +1,86 @@
+{
+  "stats": {
+    "startTime": "2026-10-05T08:00:00.000Z"
+  },
+  "suites": [
+    {
+      "title": "Feature: Demo",
+      "specs": [
+        {
+          "title": "Quarantined, 10 passes",
+          "file": ".features-gen/e2e/test-cases/demo/quarantined-10-passes.feature.spec.js",
+          "tags": [
+            "quarantine",
+            "e2e"
+          ],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "passed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Quarantined, one fail",
+          "file": ".features-gen/e2e/test-cases/demo/quarantined-one-fail.feature.spec.js",
+          "tags": [
+            "quarantine",
+            "e2e"
+          ],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "failed",
+                  "error": {
+                    "message": "Error: expect(locator).toHaveText(expected) failed\n  at Test#01.steps.ts:12:3"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Quarantined, 9 passes",
+          "file": ".features-gen/e2e/test-cases/demo/quarantined-9-passes.feature.spec.js",
+          "tags": [
+            "quarantine",
+            "e2e"
+          ],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "passed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Not quarantined, 10 passes",
+          "file": ".features-gen/e2e/test-cases/demo/not-quarantined-10-passes.feature.spec.js",
+          "tags": [
+            "e2e"
+          ],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "passed"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

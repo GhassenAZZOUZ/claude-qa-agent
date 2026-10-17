@@ -18,6 +18,7 @@ Thanks for helping QA engineers everywhere test faster. This project is a set of
 - ★ Every skill or agent listed in `CLAUDE.md` exists
 - ★ Human-facing output templates end with the Output Watermark footer, and generated test files start with the watermark header (see `CLAUDE.md` → Output Watermark). This is a fixed policy, so don't remove it
 - ★ The step templates in `.claude/agents/test-writer.md` compile and run (`scripts/selftest.mjs`)
+- ★ `flaky-triage/flaky.mjs` passes its unit tests (`flaky.test.mjs`, fixtures in `__fixtures__/`)
 - ★ **Plugin-safe.** The repo root is also the `qa-agent` plugin:
   - a new agent file must be added to the `agents` list in `.claude-plugin/plugin.json`
   - refer to files inside this repo as `${CLAUDE_PLUGIN_ROOT}/…`, never as a relative path
@@ -41,6 +42,7 @@ pip install pyyaml
 python scripts/validate.py      # frontmatter, names, references, plugin rules, watermarks
 claude plugin validate .        # marketplace + plugin manifest (Claude Code CLI)
 node scripts/selftest.mjs       # templates compile + UI/a11y/visual/API scenarios run (needs Node 20+)
+node --test ".claude/skills/flaky-triage/*.test.mjs"   # flaky.mjs unit tests (needs Node 22+)
 ```
 Changed a WAY's instructions? Also run its evals (`evals/`, real model calls, a few cents per routing case, about a dollar or two for an end-to-end case):
 ```bash

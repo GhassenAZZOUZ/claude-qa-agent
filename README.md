@@ -692,7 +692,7 @@ Help wanted. Open a "New WAY / feature" issue to discuss first.
 
 ## Contributing
 
-PRs are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first: skill vs agent, conventions, and the checks CI runs (`python scripts/validate.py`, `node scripts/selftest.mjs`, and the `evals/` suite weekly). Security issues: see [SECURITY.md](SECURITY.md).
+PRs are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first: skill vs agent, conventions, and the checks CI runs (`python scripts/validate.py`, `node scripts/selftest.mjs`, the `flaky.mjs` unit tests, and the `evals/` suite weekly). Security issues: see [SECURITY.md](SECURITY.md).
 
 ## License
 
