@@ -687,7 +687,8 @@ Help wanted. Open a "New WAY / feature" issue to discuss first.
 - **More providers.** Bitbucket Data Center, Gitea/Forgejo, Linear, YouTrack: each is one `provider-<name>` skill (see CONTRIBUTING)
 - **Field-testing the provider adapters.** GitHub's read and write paths are tested live; GitLab, Jira, Azure DevOps and Bitbucket need real-project reports. Pick one: [#27 GitLab](https://github.com/GhassenAZZOUZ/claude-qa-agent/issues/27) · [#28 Jira](https://github.com/GhassenAZZOUZ/claude-qa-agent/issues/28) · [#29 Azure DevOps](https://github.com/GhassenAZZOUZ/claude-qa-agent/issues/29) · [#30 Bitbucket](https://github.com/GhassenAZZOUZ/claude-qa-agent/issues/30)
 - **E2E API, beyond the API surface.** Assertions on queues/topics and databases, and consumer-driven contract tests (Pact), for flows WAY 17 can only observe through APIs
-- **Mobile.** Appium or Maestro runner alongside Playwright
+- **Mobile.** Android tests with a Maestro runner alongside Playwright, generated from the same Gherkin: [#33](https://github.com/GhassenAZZOUZ/claude-qa-agent/issues/33) (write and run), [#34](https://github.com/GhassenAZZOUZ/claude-qa-agent/issues/34) (in CI)
+- **Other coding agents.** A portable skill pack, starting with Cursor and `write it` / `report it` / `verify it`: [#32](https://github.com/GhassenAZZOUZ/claude-qa-agent/issues/32)
 
 ## Contributing
 
