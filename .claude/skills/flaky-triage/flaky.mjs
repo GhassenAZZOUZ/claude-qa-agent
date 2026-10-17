@@ -7,6 +7,13 @@ import path from 'path';
 const [runsDir, windowArg = '10', rootArg] = process.argv.slice(2);
 if (!runsDir) { console.error('usage: node flaky.mjs <runs-dir> [window] [project-root]'); process.exit(2); }
 const root = rootArg ?? path.dirname(path.resolve(runsDir));
+// Bad input gets one readable line naming the path, not a stack trace
+const fail = msg => { console.error(`flaky.mjs: ${msg}`); process.exit(1); };
+if (!fs.existsSync(runsDir) || !fs.statSync(runsDir).isDirectory()) fail(`runs folder not found: ${runsDir}`);
+const readReport = file => {
+  try { return JSON.parse(fs.readFileSync(file, 'utf8')); }
+  catch (e) { fail(`malformed results.json: ${file} (${e.message.split('\n')[0]})`); }
+};
 
 const NETWORK = /net::ERR_|ECONNREFUSED|ECONNRESET|ETIMEDOUT|ENOTFOUND|getaddrinfo|socket hang up|page\.goto: Timeout|apiRequestContext\.\w+: connect/;
 const NO_BASELINE = /A snapshot doesn't exist/;
@@ -14,7 +21,7 @@ const NO_BASELINE = /A snapshot doesn't exist/;
 const runs = fs.readdirSync(runsDir)
   .map(id => ({ id, file: path.join(runsDir, id, 'results.json') }))
   .filter(r => fs.existsSync(r.file))
-  .map(r => ({ ...r, report: JSON.parse(fs.readFileSync(r.file, 'utf8')) }))
+  .map(r => ({ ...r, report: readReport(r.file) }))
   .map(r => ({ ...r, start: Date.parse(r.report.stats?.startTime ?? 0) }))
   .sort((a, b) => a.start - b.start)
   .slice(-Number(windowArg));

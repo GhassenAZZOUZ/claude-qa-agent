@@ -1,0 +1,48 @@
+{
+  "stats": {
+    "startTime": "2026-10-02T08:00:00.000Z"
+  },
+  "suites": [
+    {
+      "title": "Feature: Demo",
+      "specs": [
+        {
+          "title": "Network blip in failures",
+          "file": ".features-gen/e2e/test-cases/demo/network-blip-in-failures.feature.spec.js",
+          "tags": [],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "failed",
+                  "error": {
+                    "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at https://staging.shop.example.com/checkout"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Network blip in short history",
+          "file": ".features-gen/e2e/test-cases/demo/network-blip-in-short-history.feature.spec.js",
+          "tags": [],
+          "tests": [
+            {
+              "projectName": "e2e",
+              "results": [
+                {
+                  "status": "failed",
+                  "error": {
+                    "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at https://staging.shop.example.com/checkout"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

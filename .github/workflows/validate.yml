@@ -38,3 +38,4 @@ jobs:
         with:
           node-version: "22"
       - run: node scripts/selftest.mjs
+      - run: node --test ".claude/skills/flaky-triage/*.test.mjs"
