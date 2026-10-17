@@ -6,7 +6,7 @@ Thanks for helping QA engineers everywhere test faster. This project is a set of
 - **Report a problem**: a WAY that misbehaves, a template that doesn't compile, a GitLab call that fails. Use the bug report issue template and include the WAY, the trigger phrase, and what the agent did
 - **Propose a WAY**: open a "New WAY / feature" issue before writing it, so we can agree on its scope and whether it's a skill or an agent
 - **Improve a WAY**: tighter instructions, better defaults, clearer reports
-- **Translate**: trigger keywords and docs in more languages are welcome. Keep IDs, labels and Gherkin keywords in English
+- **Translate**: docs in more languages are welcome. Trigger phrases stay in English: Claude already routes requests written in other languages
 
 ## Skill or agent?
 - **Skill** (`.claude/skills/<name>/SKILL.md`): runs inline in the main session. Use one for workflows (every WAY is a skill) and for rubrics or templates applied to data already in context (`bug-report`, `session-report`)

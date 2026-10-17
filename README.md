@@ -682,8 +682,6 @@ Help wanted. Open a "New WAY / feature" issue to discuss first.
 - **More providers.** Bitbucket Data Center, Gitea/Forgejo, Linear, YouTrack: each is one `provider-<name>` skill (see CONTRIBUTING)
 - **Field-testing the provider adapters.** GitLab is verified against its API schemas and GitHub's read paths against a live repo; Jira, Azure DevOps and Bitbucket need real-project reports
 - **E2E API, beyond the API surface.** Assertions on queues/topics and databases, and consumer-driven contract tests (Pact), for flows WAY 17 can only observe through APIs
-- **Claude Code plugin packaging.** Install with one command instead of cloning
-- **More trigger languages.** French, Spanish, German, Portuguese… trigger phrases in the skill descriptions
 - **Mobile.** Appium or Maestro runner alongside Playwright
 
 ## Contributing
