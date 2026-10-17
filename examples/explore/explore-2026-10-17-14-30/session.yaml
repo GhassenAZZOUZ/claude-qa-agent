@@ -1,0 +1,168 @@
+status: completed
+base_url: https://staging.shop.example.com
+charter: "Explore guest checkout to discover pricing, discount code and validation problems"
+actions_used: 142
+pages:
+  - url: /products
+    title: Products
+    purpose: browse products and open a product page
+    actions: [open product]
+  - url: /products/blue-mug
+    title: Blue Mug
+    purpose: product details, add to cart
+    actions: [add to cart]
+  - url: /cart
+    title: Cart
+    purpose: review items, change quantities, apply a discount code, estimate shipping
+    actions: [change quantity, remove item, apply code, estimate shipping, checkout]
+  - url: /checkout
+    title: Checkout
+    purpose: shipping address and payment
+    actions: [fill address, continue to payment]
+flows:
+  - id: F-01
+    name: Guest adds the Blue Mug and applies a discount code in the cart
+    status: completed
+    preconditions: [signed out, empty cart]
+    steps:
+      - navigate to /products
+      - click link "Blue Mug"
+      - click button "Add to cart"
+      - navigate to /cart
+      - fill textbox "Discount code" with "SAVE10"
+      - click button "Apply"
+    data:
+      - { field: Discount code, value: SAVE10, unique: false }
+    checkpoints:
+      - after: 3
+        check: [ 'text "1 item in your cart" visible' ]
+      - after: 6
+        check: [ 'url is /cart', 'text "Code SAVE10 applied" visible', 'text "Total: €18.00" visible', 'button "Apply" disabled' ]
+  - id: F-02
+    name: Guest changes the quantity in the cart and the total updates
+    status: completed
+    preconditions: [signed out, empty cart]
+    steps:
+      - navigate to /products
+      - click link "Blue Mug"
+      - click button "Add to cart"
+      - navigate to /cart
+      - fill spinbutton "Quantity" with "3"
+      - press Tab
+    data:
+      - { field: Quantity, value: "3", unique: false }
+    checkpoints:
+      - after: 6
+        check: [ 'text "3 items in your cart" visible', 'text "Total: €60.00" visible' ]
+  - id: F-03
+    name: Guest checks out and pays
+    status: blocked at step 7 (payment not allowed)
+    preconditions: [signed out, empty cart]
+    steps:
+      - navigate to /products
+      - click link "Blue Mug"
+      - click button "Add to cart"
+      - navigate to /cart
+      - click button "Checkout"
+      - fill textbox "Email" with "user@test.local"
+      - click button "Continue to payment"
+    data:
+      - { field: Email, value: user@test.local, unique: true }
+    checkpoints:
+      - after: 5
+        check: [ 'url is /checkout', 'heading "Shipping address" visible' ]
+validations:
+  - flow: F-01
+    page: /cart
+    field: textbox "Discount code"
+    input: "NOPE"
+    observed: 'text "This code is not valid" visible; total stays €20.00'
+  - flow: F-01
+    page: /cart
+    field: textbox "Discount code"
+    input: ""
+    observed: 'button "Apply" disabled'
+anomalies:
+  - id: A-01
+    kind: validation
+    title: '[Cart] Discount code accepted twice, total discounted 20 %'
+    url: /cart
+    steps:
+      - navigate to /products
+      - click link "Blue Mug"
+      - click button "Add to cart"
+      - navigate to /cart
+      - fill textbox "Discount code" with "SAVE10"
+      - click button "Apply"
+      - press Enter in textbox "Discount code"
+    observed: 'Total drops from €20.00 to €16.00; two "SAVE10" lines appear. The "Apply" button is disabled after the first apply, but Enter in the field submits again'
+    expected: The second apply is rejected or ignored; total stays €18.00
+    why_expected: 'the code says "10 % off your order"; the cart disables "Apply" after one code, so the app itself means one code per order'
+    evidence:
+      screenshot: qa-artifacts/explore/explore-2026-10-17-14-30/A-01.png
+      console: []
+      network: ['POST /api/cart/discount => 200', 'POST /api/cart/discount => 200']
+    flow: F-01
+    reproduced: true
+    confidence: high
+  - id: A-02
+    kind: raw-error
+    title: '[Cart] Shipping estimate shows "NaN days" after the postcode is cleared'
+    url: /cart
+    steps:
+      - navigate to /products
+      - click link "Blue Mug"
+      - click button "Add to cart"
+      - navigate to /cart
+      - fill textbox "Postcode" with "75001"
+      - click button "Estimate shipping"
+      - fill textbox "Postcode" with ""
+      - click button "Estimate shipping"
+    observed: 'text "Delivery in NaN days" visible'
+    expected: 'A message asking for a postcode, or no estimate'
+    why_expected: 'user-facing text containing "NaN"'
+    evidence:
+      screenshot: qa-artifacts/explore/explore-2026-10-17-14-30/A-02.png
+      console: []
+      network: ['GET /api/shipping/estimate?postcode= => 200']
+    flow: null
+    reproduced: true
+    confidence: medium
+  - id: A-03
+    kind: a11y
+    title: '[Cart] Quantity "+" and "−" buttons have no accessible name'
+    url: /cart
+    steps:
+      - navigate to /products
+      - click link "Blue Mug"
+      - click button "Add to cart"
+      - navigate to /cart
+    observed: 'snapshot shows two `button` elements with no name next to spinbutton "Quantity"'
+    expected: Each button has a name, e.g. "Increase quantity" / "Decrease quantity"
+    why_expected: WCAG 4.1.2 Name, Role, Value
+    evidence:
+      screenshot: qa-artifacts/explore/explore-2026-10-17-14-30/A-03.png
+      console: []
+      network: []
+    flow: F-02
+    reproduced: true
+    confidence: high
+  - id: A-04
+    kind: console-error
+    title: '[Products] TypeError reading "price" of undefined on first load'
+    url: /products
+    steps:
+      - navigate to /products
+    observed: "console: TypeError: Cannot read properties of undefined (reading 'price') at product-grid.js:88"
+    expected: No console error on page load
+    why_expected: an uncaught exception in the app's own bundle
+    evidence:
+      screenshot: null
+      console: ["TypeError: Cannot read properties of undefined (reading 'price') at product-grid.js:88"]
+      network: []
+    flow: null
+    reproduced: false
+    confidence: low
+coverage_notes: >-
+  Payment was not explored (not in the allow list): F-03 stops at "Continue to payment".
+  Signed-in checkout and saved addresses were out of the charter.

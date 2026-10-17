@@ -1,0 +1,10 @@
+run_id: explore-2026-10-17-14-30
+env: staging
+base_url: https://staging.shop.example.com
+flows_folder: test-cases/explore-guest-checkout-2026-10-17/
+flow_tests: { Test#01: R-01, Test#02: R-02, Test#03: R-03 }
+anomaly_tests: { A-01: test-cases/regression/bug-176/, A-02: test-cases/regression/explore-2026-10-17-14-30-A02/ }
+needs_login: false
+status: filed          # written → run → filed
+test_run_id: 2026-10-17T16-02-11
+filed: { A-01: "#176" }

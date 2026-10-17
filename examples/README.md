@@ -17,5 +17,11 @@ the shape and level of detail you get from each WAY.
 | [flaky-triage.md](flaky-triage.md) | `flaky-triage` (WAY 13) | `flaky` |
 | [load-test/orders-api-2026-10-16/load.js](load-test/orders-api-2026-10-16/load.js) | `load-test-writer` (WAY 15) → k6 script | `load test orders-api` |
 | [load-test-report.md](load-test-report.md) | `load-test` (WAY 15) → per-endpoint report | `load test orders-api` |
+| [heal-tests.md](heal-tests.md) | `heal-tests` (WAY 16) → `test-healer` proposals and outcomes | `heal it` |
+| [integration-tests/orders-api-integration-2026-10-17/](integration-tests/orders-api-integration-2026-10-17/) | `integration-tests` (WAY 17) → integration mode, one spec | `integration it` |
+| [integration-tests/checkout-e2e-api-2026-10-17/](integration-tests/checkout-e2e-api-2026-10-17/) | `integration-tests` (WAY 17) → E2E API mode, three services | `e2e api it` |
+| [explore-session.md](explore-session.md) | `explore-session` (WAY 18) → session report after the tests ran | `explore it run explore-2026-10-17-14-30` |
+| [explore/explore-2026-10-17-14-30/session.yaml](explore/explore-2026-10-17-14-30/session.yaml) | `exploratory-tester` (WAY 18) → exploration handoff | `explore it guest checkout` |
+| [explore/explore-2026-10-17-14-30/tests.yaml](explore/explore-2026-10-17-14-30/tests.yaml) | `explore-session` (WAY 18) → state a later run resumes from | `explore it guest checkout` |
 
 Story #148 is the running example: *"As a shopper, I want to apply a discount code at checkout so that I pay the promotional price."*
