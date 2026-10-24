@@ -8,6 +8,25 @@ Thanks for helping QA engineers everywhere test faster. This project is a set of
 - **Improve a WAY**: tighter instructions, better defaults, clearer reports
 - **Translate**: docs in more languages are welcome. Trigger phrases stay in English: Claude already routes requests written in other languages
 
+## Picking work
+Open issues are ranked on the **QA Agent Roadmap** project board (the repo's **Projects** tab). Take the top card of **Ready**: highest Priority first, smallest Effort first within a priority. Assign yourself and move it to **In progress** before you start.
+
+| Priority | Meaning |
+|---|---|
+| P0 | `must`, unblocks other work or protects quality; do next |
+| P1 | `must` or verifies shipped features (provider live-runs) |
+| P2 | `should` |
+| P3 | `could`, nice to have |
+
+| Column | Rule |
+|---|---|
+| Needs info | The story's Missing Information has open questions. Answer them on the issue; don't code yet |
+| Ready | Decisions made, nothing blocking |
+| Blocked | Waits on another issue named in its body |
+| In progress → In review → Done | Assigned → PR open → merged |
+
+Maintainers set Priority and Effort on new issues (the `project-board` workflow adds them to the board). `scripts/setup-project-board.sh` recreates the board and its ranking.
+
 ## Skill or agent?
 - **Skill** (`.claude/skills/<name>/SKILL.md`): runs inline in the main session. Use one for workflows (every WAY is a skill) and for rubrics or templates applied to data already in context (`bug-report`, `session-report`)
 - **Agent** (`.claude/agents/<name>.md`): runs in its own context. Use one only when it reads or produces a lot (logs, diffs, many files, web pages) or needs a restricted tool list. Agents can't start other agents, so orchestration belongs in skills
