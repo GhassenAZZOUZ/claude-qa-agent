@@ -54,6 +54,7 @@ selected:
     scenario: <title>
     project: e2e | api
     confidence: high | medium | low
+    priority: P0 | P1 | P2 | P3   # from its tag: @critical P0, @high P1, @medium P2, @low P3; P2 when it has none
     reason: <e.g. "POST /v1/orders handler changed (src/orders/controller.ts:42)">
 scope_filters:            # folder filters for test-execution-agent, one per test-cases folder involved
   - test-cases/<feature>-<date>/

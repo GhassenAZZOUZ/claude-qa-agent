@@ -15,22 +15,23 @@ Run `mr-test-impact` with the MR/PR number (or URL), `QA_CODE_HOST`, and that pr
 If nothing is selected and `broad_change` is false, say so and go straight to Phase 3 with the uncovered list.
 
 ## Phase 2: Run
-Run `test-execution-agent` per project (`e2e`, `api`) with the returned `scope_filters`.
+Run `test-execution-agent` per project (`e2e`, `api`) with the returned `scope_filters`. Order everything by `priority` (P0 first), then confidence: a failing P0/P1 test is what blocks the merge.
 - `failure_kind: locator` → `test-healer` (propose mode). A label change in this MR/PR is the usual cause, so show the heal next to the change itself
 - **Don't file bugs automatically.** The code isn't merged yet, so failures go to the author first. File bugs only if the user asks
 
 ## Phase 3: Report on the MR/PR (`change.comment`, per the `tracker` skill)
-Post one comment (use the provider's ref format: `!87` on GitLab/Azure, `#87` on GitHub/Bitbucket):
+Post one comment (use the provider's ref format: `!87` on GitLab/Azure, `#87` on GitHub/Bitbucket). Rows are sorted by priority, then result (failures first):
 
 ```markdown
 ## 🧪 QA impact — <ref>
 
 **Environment:** <url> · **Run:** <RUN_ID>
 **Selected:** N tests (H high / M medium / L low confidence) · ✅ P passed · ❌ F failed · ⚠️ B blocked
+**Blocking:** ❌ K failed P0/P1 tests (or "none")
 
-| Test | Why selected | Result |
-|---|---|---|
-| Test#03 — Checkout applies discount | `POST /v1/orders` changed (src/orders/controller.ts) | ❌ step 3: total not updated |
+| Test | Priority | Why selected | Result |
+|---|---|---|---|
+| Test#03 — Checkout applies discount | P0 | `POST /v1/orders` changed (src/orders/controller.ts) | ❌ step 3: total not updated |
 
 **Tests needing a heal (label changed in this change):** …
 **Changed areas with no test:** `/settings/billing` (src/pages/settings/billing.tsx). Run `write it` to cover it.

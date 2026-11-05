@@ -1,12 +1,12 @@
 # Traceability — #148 Checkout discount codes
-**Coverage:** 3/4 ACs tested · 2 passing · 1 failing · 1 untested
+**Coverage:** 3/4 ACs tested · 2 passing · 1 failing · 1 planned, not written
 
 | AC | Title | Priority | Tests | Latest result | Open bugs | Status |
 |---|---|---|---|---|---|---|
 | AC-01 | Valid code reduces the total | must | Test#01 | ✅ (2026-10-09) | — | 🟢 |
 | AC-02 | Expired code is rejected | must | Test#02 | ❌ (2026-10-09) | #161 | 🔴 |
 | AC-03 | Code input is validated | should | Test#03, Test#04 | ✅ ✅ (2026-10-09) | — | 🟢 |
-| AC-04 | Codes cannot be stacked | must | — | — | — | ⚪ |
+| AC-04 | Codes cannot be stacked | must | Test#05 (planned) | — | — | 🔵 |
 
 **Untraced tests:** none
 

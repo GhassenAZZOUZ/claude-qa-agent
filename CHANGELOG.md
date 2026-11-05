@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+WAY 19 (test plan): test design becomes its own reviewed step, between the story and the code ([#42](https://github.com/GhassenAZZOUZ/claude-qa-agent/issues/42)).
+
+- **WAY 19 `test-plan`** (`plan it`): requirements → readiness gate → `test-writer` in the new `plan` mode designs a test plan and writes no code: scope, levels (ui / api, lowest level with the same oracle), one row per `Test#<nn>` with category, tags, covers and a **P0–P3 priority** (from must/should/could, raised when a failure would charge a wrong amount, bypass auth, expose or lose data), coverage, environments, entry/exit criteria, risks, and a **Retired** list (IDs are never renumbered or reused). Filed as a `test-plan` issue with `plan-awaiting-approval`; approving swaps it to `plan-approved`, which the agent does only on your OK
+- **Plan before code in WAY 1 and 4**: `write it Plan: <ref>` / `e2e it Plan: <ref>` write exactly the approved plan's tests (`test-writer` `write` mode: nothing added, dropped or renumbered). Without `Plan:`, they design the plan, show it and wait for approval before writing any file. `plan: auto` skips the question for unattended runs (`plan-auto-approved`). The test folder's index links its plan (`**Plan:**`)
+- **Stories no longer carry a Test Scenarios table**: `user-story-format` (WAY 6 and WAY 8) keeps the Gherkin ACs, Missing Information and DoD (+ "Test plan approved"). WAY 6 drops the table on its next rewrite of an older story; `plan it` and `test-writer` read a legacy table as hints. `requirements-analysis` gains the approved-plan intake row
+- **`scripts/plan-check.mjs`**: checks a plan (IDs, categories, levels vs `@e2e`/`@api`, priority vs `@critical`/`@high`/`@medium`/`@low`, covers vs Requirements, retired IDs not reused, every requirement has a test, missing positive/negative tests warned unless the Coverage cell says why) and the drift between the plan and its test folder. Unit tests (`plan-check.test.mjs`) and a check of the example plan run in CI
+- **WAY 11** orders its selection and MR/PR comment by priority (P0 first) and headlines failed P0/P1 tests; `mr-test-impact` returns each test's priority. **WAY 14** shows 🔵 *planned — not written* for requirements only the plan covers
+- New example `examples/test-plans/checkout-discount-2026-10-09.md`. New evals: `routing-plan-it`, `plan-gated-missing-info`, `write-it-plans-first`, `write-from-approved-plan`
+
 ## 1.3.0 — 2026-10-16
 
 WAY 18 (exploratory session): live exploration with a scoped Playwright MCP server, handed to `test-writer` as runnable playwright-bdd tests you run now or later.

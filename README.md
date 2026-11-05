@@ -6,13 +6,13 @@ An autonomous QA agent for DevOps-oriented teams. Give it an issue (GitLab, GitH
 
 [![validate](https://github.com/GhassenAZZOUZ/claude-qa-agent/actions/workflows/validate.yml/badge.svg)](https://github.com/GhassenAZZOUZ/claude-qa-agent/actions/workflows/validate.yml)
 
-**Quick start:** [Setup](#setup) · **Modes:** [Eighteen Modes](#eighteen-modes) · **See the output:** [examples/](examples/) · **Help wanted:** [Roadmap](#roadmap) · [Contributing](CONTRIBUTING.md)
+**Quick start:** [Setup](#setup) · **Modes:** [Nineteen Modes](#nineteen-modes) · **See the output:** [examples/](examples/) · **Help wanted:** [Roadmap](#roadmap) · [Contributing](CONTRIBUTING.md)
 
 ---
 
 ## See It in Action
 
-From one user story (*"apply a discount code at checkout"*), the agent produces: a [test plan + runnable Gherkin/Playwright tests](examples/test-cases/checkout-discount-2026-10-09/), a [developer-ready bug](examples/bug-issue.md) for the failure it found, a [session report](examples/session-report.md), an [MR impact comment](examples/mr-impact-comment.md), a [traceability matrix](examples/traceability.md) and a [release go/no-go](examples/release-readiness.md). Then it [verifies fixes](examples/verify-fix-summary.md), [triages flaky tests](examples/flaky-triage.md), [load-tests the API](examples/load-test-report.md), [heals broken selectors](examples/heal-tests.md), writes [integration](examples/integration-tests/orders-api-integration-2026-10-17/) and [multi-service E2E API](examples/integration-tests/checkout-e2e-api-2026-10-17/) tests, and [explores the app](examples/explore-session.md) without written requirements. All on a fictional shop; see [examples/](examples/).
+From one user story (*"apply a discount code at checkout"*), the agent produces: a [test plan you approve first](examples/test-plans/checkout-discount-2026-10-09.md), then exactly those [runnable Gherkin/Playwright tests](examples/test-cases/checkout-discount-2026-10-09/), a [developer-ready bug](examples/bug-issue.md) for the failure it found, a [session report](examples/session-report.md), an [MR impact comment](examples/mr-impact-comment.md), a [traceability matrix](examples/traceability.md) and a [release go/no-go](examples/release-readiness.md). Then it [verifies fixes](examples/verify-fix-summary.md), [triages flaky tests](examples/flaky-triage.md), [load-tests the API](examples/load-test-report.md), [heals broken selectors](examples/heal-tests.md), writes [integration](examples/integration-tests/orders-api-integration-2026-10-17/) and [multi-service E2E API](examples/integration-tests/checkout-e2e-api-2026-10-17/) tests, and [explores the app](examples/explore-session.md) without written requirements. All on a fictional shop; see [examples/](examples/).
 
 ---
 
@@ -22,6 +22,7 @@ From one user story (*"apply a discount code at checkout"*), the agent produces:
 |---|---|---|
 | Bug tracking | One tracker, hard-wired | **GitLab, GitHub, Jira or Azure Boards**: same workflows, your tracker |
 | Test management | Paid SaaS | **Markdown files in your repo + issues in your tracker** |
+| Test design | Tests generated straight from the prompt | **`plan it`: a reviewed test plan (scope, levels, P0–P3, coverage) you approve before any code is written** |
 | Browser tests | UI E2E only | UI E2E **+ accessibility (axe) built into every scenario** |
 | API testing | None | **`api it` mode — OpenAPI validation + functional tests** |
 | CI diagnosis | None | **`ci it`: root cause of a failed GitLab / GitHub Actions / Azure / Bitbucket run** |
@@ -63,7 +64,7 @@ Every generated `.feature`/`.steps.ts` test file starts with the same attributio
 
 ---
 
-## Eighteen Modes
+## Nineteen Modes
 
 Each mode ("WAY") is a skill. Type a trigger phrase, or `/<skill>` directly (`/qa-agent:<skill>` with the plugin). Only the triggered WAY's instructions are loaded.
 
@@ -73,9 +74,9 @@ Each mode ("WAY") is a skill. Type a trigger phrase, or `/<skill>` directly (`/q
 | 1 | `e2e-session` | `e2e it` | Requirements → browser tests (+a11y) → run → heal locator failures → file bugs → session report |
 | 2 | `api-session` | `api it` | OpenAPI → API tests → run (schema, perf) → file bugs → API report |
 | 3 | `quick-bug` | `report it` | One-line bug → issue + a regression test |
-| 4 | `write-tests` | `write it` | Requirements → test files + `test-plan` issue, no run |
+| 4 | `write-tests` | `write it` | Approved test plan (or plan + approve first) → exactly those test files, no run |
 | 5 | `diagnose-ci` | `ci it` | Failed pipeline → failure type, root cause, concrete fix |
-| 6 | `enhance-story` | `analyze us` | Score a story → rewrite with Gherkin ACs, scenarios, DoD → QA analysis comment |
+| 6 | `enhance-story` | `analyze us` | Score a story → rewrite with Gherkin ACs, Missing Information, DoD → QA analysis comment |
 | 7 | `benchmark` | `benchmark it` | App/URL/repo → sourced competitor matrix (+ Lighthouse) |
 | 8 | `gap-stories` | `gap it` | Benchmark → leader → gap user stories |
 | 9 | `verify-fix` | `verify it #142` | Run the bug's regression test → `verified`/`fix-failed`, close/reopen |
@@ -88,6 +89,7 @@ Each mode ("WAY") is a skill. Type a trigger phrase, or `/<skill>` directly (`/q
 | 16 | `heal-tests` | `heal it` | Repair tests broken by UI renames, with approval |
 | 17 | `integration-tests` | `integration it` / `e2e api it` | One spec → API integration tests; several specs → E2E API tests across services (async effects polled), no run |
 | 18 | `explore-session` | `explore it` | Charter → live browser exploration → `test-writer` turns flows + anomalies into bdd tests → run now or later → bugs (with approval) |
+| 19 | `test-plan` | `plan it #148` | Requirements → test plan (scope, levels, one row per `Test#<nn>` with category, P0–P3 priority, coverage, entry/exit criteria, risks) → your approval. No code |
 
 ### Test levels
 
@@ -121,7 +123,7 @@ All tools except Claude are free and open source.
 
 ```
 devops-qa-agent/
-├── CLAUDE.md                          # Routing table (18 WAYs → skills, one trigger each) + shared rules + watermark policy
+├── CLAUDE.md                          # Routing table (19 WAYs → skills, one trigger each) + shared rules + watermark policy
 ├── README.md                          # This file
 ├── LICENSE · CONTRIBUTING.md · SECURITY.md · CODE_OF_CONDUCT.md · CHANGELOG.md
 ├── .claude-plugin/                    # plugin.json (manifest, bundled GitLab + Playwright MCP, install-time settings) + marketplace.json
@@ -130,9 +132,10 @@ devops-qa-agent/
 ├── scripts/
 │   ├── validate.py                    # Frontmatter, names, CLAUDE.md references + size, triggers, plugin manifest, watermarks (CI)
 │   ├── session-context.mjs            # Plugin hook: loads CLAUDE.md rules into each session
+│   ├── plan-check.mjs (+ .test.mjs)   # Checks a test plan's rows, coverage floor and drift vs its test folder (WAY 1/4/19, CI)
 │   └── selftest.mjs                   # Runs test-writer's templates end to end on a demo app (CI)
 ├── examples/                          # Illustrative output of every WAY on a fictional shop
-├── evals/                             # `claude plugin eval` cases: routing, readiness gate, spec boundaries, WAY 17 and WAY 18 handoff end to end (CI: weekly / `run-evals` label)
+├── evals/                             # `claude plugin eval` cases: routing, readiness gate, plan-first + write-the-approved-plan, spec boundaries, WAY 17 and WAY 18 handoff end to end (CI: weekly / `run-evals` label)
 ├── .github/                           # CI workflows (validate, evals), issue + PR templates
 ├── .env.example                       # Copy to .env and fill in your values
 ├── .mcp.example.json                  # Copy to .mcp.json (GitLab MCP only)
@@ -142,7 +145,7 @@ devops-qa-agent/
 ├── .claude/
 │   ├── settings.example.json          # Copy to settings.json and fill in
 │   ├── skills/
-│   │   ├── qa-setup/ e2e-session/ … explore-session/   # WAY 0–18 skills, one folder each (see "Eighteen Modes")
+│   │   ├── qa-setup/ e2e-session/ … test-plan/   # WAY 0–19 skills, one folder each (see "Nineteen Modes")
 │   │   ├── flaky-triage/flaky.mjs     # Run-history aggregator used by WAY 13
 │   │   ├── tracker/                   # Shared: provider-neutral issue / MR-PR / CI operations, labels, failures
 │   │   ├── provider-gitlab/ provider-github/ provider-jira/ provider-azure-devops/ provider-bitbucket/
@@ -274,12 +277,18 @@ Auth, Logged in as standard user, Go to /settings > Click Delete Account > Confi
 ### WAY 4 — Write Test Cases
 
 ```
+write it Plan: #150            # an approved plan from `plan it`: writes exactly its Test#<nn>
+```
+
+Without a plan, `write it` designs one first and waits for your OK before writing any file:
+```
 write it
 Issue: #55
 App: https://staging.myapp.com/upload
 Spec: https://api.staging.myapp.com/openapi.json#/paths/~1upload
 MR: 88
 ```
+Add `plan: auto` for unattended runs (CI, scheduled tasks): the plan is saved as `auto-approved` and the tests are written without asking.
 
 ### WAY 5 — Diagnose CI Failure
 
@@ -309,7 +318,7 @@ analyze and update us #143
 improve us #143
 ```
 
-The agent scores the story out of 100, rewrites the issue body with Gherkin acceptance criteria, test scenarios, and a Definition of Done checklist, then posts the score + QA findings as a separate comment so the body stays clean for developers.
+The agent scores the story out of 100, rewrites the issue body with Gherkin acceptance criteria, Missing Information and a Definition of Done checklist, then posts the score + QA findings as a separate comment so the body stays clean for developers.
 
 ### WAY 7 — Competitor Benchmark
 
@@ -450,6 +459,18 @@ or ship them with the rest of the suite via `ci setup`. Only an anomaly whose te
 
 Safe by default: no deletes, payments, emails or account changes unless you say `allow: delete, payment`; `--env prod` is read-only and needs your confirmation; signed-in exploration and tests use `UI_TEST_USER` / `UI_TEST_PASSWORD` from `.env` (a test account).
 
+### WAY 19 — Test Plan
+
+```
+analyze us #148        # the story owns the ACs (what the product must do)
+plan it #148           # the plan owns what we test, at which level, in which order
+write it Plan: #150    # or: e2e it Plan: #150
+```
+
+`plan it` runs the readiness gate, then `test-writer` designs the plan without writing code: scope and out of scope, test levels (a check goes to the lowest level with the same oracle: a validation the API returns is an API test), one row per `Test#<nn>` with its category, tags, covered ACs and a P0–P3 priority (from the AC's must/should/could, raised when a failure would charge a wrong amount, bypass auth, expose or lose data), a coverage table, environments, entry/exit criteria and risks. See the [example plan](examples/test-plans/checkout-discount-2026-10-09.md).
+
+It's filed as a `test-plan` issue labelled `plan-awaiting-approval` and shown to you: approve it, or change it (`plan it Plan: #150 drop Test#05`, `… make Test#04 an api test`). IDs are never renumbered or reused: a dropped test moves to **Retired**. Approving swaps the label to `plan-approved` (you can also do that in the tracker). `write it Plan:` / `e2e it Plan:` then write exactly the planned tests, and `scripts/plan-check.mjs` flags any drift between the plan and the test folder. `trace it` shows tests that are planned but not written yet, and `test mr` reports results by priority, P0 first.
+
 ---
 
 ## What the Agent Produces
@@ -472,8 +493,8 @@ Safe by default: no deletes, payments, emails or account changes unless you say 
 - `qa-artifacts/test-cases/regression/bug-<ref>/Test#01.{md,feature,steps.ts}` — regression test reproducing it, tagged `@regression`
 
 **WAY 4 (Write test cases):**
-- `qa-artifacts/test-cases/[feature]-[date]/Test#<nn>.{md,feature,steps.ts}` — UI E2E + API test cases, same triple format
-- Tracker issue: one `test-plan` issue
+- `qa-artifacts/test-plans/[feature]-[date].md` + a `test-plan` issue — the plan you approved (unless you passed `Plan:`)
+- `qa-artifacts/test-cases/[feature]-[date]/Test#<nn>.{md,feature,steps.ts}` — exactly the planned UI E2E + API test cases, same triple format
 - Optional MR discussion comment with test plan summary
 
 **WAY 5 (CI diagnosis):**
@@ -481,7 +502,7 @@ Safe by default: no deletes, payments, emails or account changes unless you say 
 - Optional MR discussion comment with the diagnosis
 
 **WAY 6 (User story enhancer):**
-- Issue body — replaced with enhanced story (Gherkin ACs, test scenarios, DoD, original preserved in collapsible)
+- Issue body — replaced with enhanced story (Gherkin ACs, Missing Information, DoD, original preserved in collapsible)
 - Issue comment — QA analysis report (score/100, grade, strengths, issues found with severity + suggestions)
 
 **WAY 7 (Competitor benchmark):**
@@ -607,7 +628,7 @@ Fetches the CI run, failed jobs (log tail first) and linked MR/PR diff itself, f
 ### `user-story-enhancer`
 **Used by:** WAY 6
 
-Scores a user story out of 100 (the `enhance-story` skill fetches it from any tracker and applies the result) (deductions for missing business value, vague language, absent ACs, no error handling, no NFRs, etc.). Updates the issue body with: enhanced "As a / I want / So that" story, AC summary table with priorities, full Gherkin Given/When/Then scenarios in a collapsible block, test scenarios covering all six types (happy_path, edge_case, negative, boundary, security, performance), open questions that block testing, and a DoD checklist. Posts the QA analysis (score, grade, strengths, issues with severity + concrete suggestions) as a **separate comment** to keep the body clean for developers. The original story is always preserved verbatim inside a collapsible block.
+Scores a user story out of 100 (the `enhance-story` skill fetches it from any tracker and applies the result) (deductions for missing business value, vague language, absent ACs, no error handling, no NFRs, etc.). Updates the issue body with: enhanced "As a / I want / So that" story, AC summary table with priorities, full Gherkin Given/When/Then scenarios in a collapsible block, open questions that block testing, and a DoD checklist. Which tests to write is left to the test plan (WAY 19). Posts the QA analysis (score, grade, strengths, issues with severity + concrete suggestions) as a **separate comment** to keep the body clean for developers. The original story is always preserved verbatim inside a collapsible block.
 
 ---
 
@@ -633,7 +654,7 @@ Builds, saves, and (WAY 1) files the session summary — counts, failed tests, p
 ### `user-story-format`
 **Used by:** `user-story-enhancer` (WAY 6), `benchmark-gap-story-writer` (WAY 8)
 
-The single story body definition (story, Gherkin ACs, scenarios, Missing Information, DoD), so WAY 6 can re-score WAY 8's stories and `test-writer` can trace tests to stable AC IDs.
+The single story body definition (story, Gherkin ACs, Missing Information, DoD), so WAY 6 can re-score WAY 8's stories and `test-writer` can trace tests to stable AC IDs.
 
 ### `requirements-analysis`
 **Used by:** WAY 1, 4, 14, 17 (inline) · `test-writer`, `user-story-enhancer`, `user-story-format`
@@ -654,8 +675,13 @@ The single set of rules for analyzing requirements, so stories are scored agains
 4. **Scenario categories**: happy path, negative, edge case, boundary, security, permissions, performance, with their Gherkin tags and when each is required
 5. **Checklists per element**: input field, ID/resource, upload, numeric, auth/session, concurrency, backend failure
 
+### `test-plan`
+**Used by:** WAY 19 (`plan it`), WAY 1 and 4 (plan and approve before writing), WAY 11 and 14 (priorities, planned-not-written)
+
+The test plan format (the one definition), the approval flow (`plan-awaiting-approval` → `plan-approved`, or `plan-auto-approved` with `plan: auto`), and how plans change without renumbering. `scripts/plan-check.mjs` checks a plan and its test folder.
+
 ### WAY skills
-The 18 WAY skills hold each mode's full procedure; see **Eighteen Modes** above.
+The 19 WAY skills hold each mode's full procedure; see **Nineteen Modes** above.
 
 ---
 

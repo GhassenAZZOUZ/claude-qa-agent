@@ -1,6 +1,6 @@
 ---
 name: requirements-analysis
-description: Reference only — the single definition of how requirements are analyzed before tests or stories are written — intake (text, issue, enhanced story, spec, exploration session) into one requirements model, the readiness gate (Missing Information, vague wording), requirement IDs (AC-NN from stories, R-NN derived from plain text), the scenario categories and tag mapping, and the per-element test checklists. Applied inline by e2e-session, write-tests, integration-tests and traceability; read by test-writer, user-story-enhancer and user-story-format. Not a workflow on its own.
+description: Reference only — the single definition of how requirements are analyzed before tests or stories are written — intake (text, issue, enhanced story, spec, exploration session, approved test plan) into one requirements model, the readiness gate (Missing Information, vague wording), requirement IDs (AC-NN from stories, R-NN derived from plain text), the scenario categories and tag mapping, and the per-element test checklists. Applied inline by e2e-session, write-tests, integration-tests and traceability; read by test-writer, user-story-enhancer and user-story-format. Not a workflow on its own.
 ---
 
 # requirements-analysis
@@ -13,7 +13,8 @@ When a rule changes, change it here only.
 
 | Source | Requirement IDs | Scenario hints | Open questions |
 |---|---|---|---|
-| **Enhanced story**: a `user-story-format` body with an `## Acceptance Criteria` table | `AC-NN`, as written | its Test Scenarios table | its `## Missing Information` section |
+| **Enhanced story**: a `user-story-format` body with an `## Acceptance Criteria` table | `AC-NN`, as written | its Gherkin ACs (and a legacy Test Scenarios table, if the story predates WAY 19) | its `## Missing Information` section |
+| **Approved test plan** (`test-plan` skill format) | its `## Requirements` table, as written | its Planned tests rows: these **are** the scenarios, nothing is added | none: the plan passed the gate when it was designed |
 | **Issue without an AC table** | `R-NN`, derived (§3) | — | derived (§2) |
 | **Plain text** | `R-NN`, derived (§3) | — | derived (§2) |
 | **OpenAPI spec only** | none: operations are the units, tests are `**Covers:** untraced` | the spec's operations; each request property and parameter is an element whose schema keywords are its stated limits (§5, OpenAPI schema constraints) | — |
@@ -70,7 +71,7 @@ Who asks:
 - One `R-NN` per **independently testable statement**: one actor, one action or condition, one observable outcome. Split "and" when the parts have different outcomes ("the link is emailed **and** expires after 1 hour" → two)
 - Number from `R-01` in text order. Keep the user's wording. Don't add requirements the text doesn't state: those are open questions (§2) or `untraced` tests
 - **Confirmed before use**: show the table with the gate questions, and apply the user's corrections
-- **Persisted** in the test folder's index `.md`, right under the `**Source:**` line:
+- **Persisted** in the test plan's `## Requirements` table and the test folder's index `.md`, right under the `**Source:**` line:
 
   ```markdown
   ## Requirements
@@ -88,7 +89,7 @@ Tests cite IDs the same way in both schemes: `**Covers:** R-01, R-03` in `Test#<
 
 ## 4. Scenario categories
 
-One list, used by test-writer's scenarios **and** the story's Test Scenarios table (`user-story-format`):
+One list, used by test-writer's scenarios **and** the test plan's Category column (`test-plan` skill):
 
 | Category | Meaning | Gherkin tags | When it's required |
 |---|---|---|---|

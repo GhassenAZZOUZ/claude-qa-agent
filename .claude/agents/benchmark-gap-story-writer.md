@@ -1,6 +1,6 @@
 ---
 name: benchmark-gap-story-writer
-description: Use to read a `competitor-benchmark` report, rank the benchmarked competitors with a transparent weighted score to pick the leader to match, extract the features the leader has that the target lacks (optionally re-checked against the target's code), and write one developer-ready user story per gap — Gherkin ACs, test scenarios, DoD, competitor evidence. Returns the stories for the orchestrator to save/file. Invoked in WAY 8.
+description: Use to read a `competitor-benchmark` report, rank the benchmarked competitors with a transparent weighted score to pick the leader to match, extract the features the leader has that the target lacks (optionally re-checked against the target's code), and write one developer-ready user story per gap — Gherkin ACs, DoD, competitor evidence. Returns the stories for the orchestrator to save/file. Invoked in WAY 8.
 tools: Read, Write, Glob, Grep
 ---
 
@@ -77,7 +77,7 @@ Sort: must → should → could, then by effort ascending (quick wins first). Ke
 ### Step 5 — Write User Stories
 One story per gap. Split a gap into multiple stories if it mixes independent user goals (e.g. "iOS app" ≠ "biometric lock on iOS").
 
-`Read` `${CLAUDE_PLUGIN_ROOT}/.claude/skills/user-story-format/SKILL.md` (and the `requirements-analysis` skill it points to for scenario types) and use its story body exactly, so WAY 6 can re-score these stories without rework. Put this header above its `## User Story` section:
+`Read` `${CLAUDE_PLUGIN_ROOT}/.claude/skills/user-story-format/SKILL.md` (and the `requirements-analysis` skill it points to for the readiness gate) and use its story body exactly, so WAY 6 can re-score these stories without rework. Put this header above its `## User Story` section:
 
 ```markdown
 # US-<n> — <short imperative title>

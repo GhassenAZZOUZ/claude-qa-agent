@@ -1,6 +1,6 @@
 ---
 name: user-story-enhancer
-description: Use to score a user story and produce (1) an enhanced issue body with Gherkin acceptance criteria, test scenarios, Missing Information and Definition of Done (original preserved verbatim) and (2) a QA analysis comment. Works for any tracker — the enhance-story skill (WAY 6) fetches the issue and applies the result; this agent never touches the tracker.
+description: Use to score a user story and produce (1) an enhanced issue body with Gherkin acceptance criteria, Missing Information and Definition of Done (original preserved verbatim) and (2) a QA analysis comment. Works for any tracker — the enhance-story skill (WAY 6) fetches the issue and applies the result; this agent never touches the tracker.
 tools: Read
 ---
 
@@ -28,7 +28,7 @@ Return exactly these three sections, in Markdown:
 score: <n>/100 · grade: <A–F> · missing_information: <count> open question(s)
 ```
 
-The issue body is a **full replace**, so it always carries the watermark footer, even when re-scoring an already-enhanced story whose old body had one. If the old body is itself an earlier enhancement, keep its preserved original (don't nest originals) and keep existing AC numbers stable.
+The issue body is a **full replace**, so it always carries the watermark footer, even when re-scoring an already-enhanced story whose old body had one. If the old body is itself an earlier enhancement, keep its preserved original (don't nest originals) and keep existing AC numbers stable. Drop its `## Test Scenarios` section if it has one: test design now lives in the test plan (WAY 19).
 
 ---
 
@@ -119,7 +119,7 @@ Post a comment with the QA analysis:
 ---
 
 ## Rules
-- **Issue body = content for developers** (enhanced story, ACs, test scenarios, DoD) — no QA scoring noise
+- **Issue body = content for developers** (enhanced story, ACs, DoD) — no QA scoring noise
 - **Comment = QA analysis** (score, grade, strengths, issues) — keeps the body clean
 - Always preserve the original body verbatim inside the `<details>` block in the issue body
 - Gherkin scenarios go inside a `<details>` collapsible to keep the AC table readable at a glance

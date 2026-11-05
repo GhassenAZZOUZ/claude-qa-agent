@@ -1,0 +1,23 @@
+name: project-board
+
+# Adds every new issue to the "QA Agent Roadmap" board (scripts/setup-project-board.sh).
+# User-owned projects can't be written with GITHUB_TOKEN, so this needs:
+#   vars.QA_PROJECT_URL      https://github.com/users/<owner>/projects/<n>
+#   secrets.ADD_TO_PROJECT_PAT  classic PAT with `project` + `repo` scopes
+# Skipped until both are set. Priority and Effort are set by a maintainer on the board.
+
+on:
+  issues:
+    types: [opened, reopened, transferred]
+
+permissions: {}
+
+jobs:
+  add:
+    if: vars.QA_PROJECT_URL != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v1.0.2
+        with:
+          project-url: ${{ vars.QA_PROJECT_URL }}
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}

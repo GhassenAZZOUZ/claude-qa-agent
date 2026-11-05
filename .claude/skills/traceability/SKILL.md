@@ -15,8 +15,9 @@ For each story:
    - Folder: the `## Requirements` table of its index `.md` (`**Source:** text`). If it has none, its tests predate R-NN: list them all as untraced and suggest `write it` to re-derive
    - A story that has ACs while some of its folders cite `R-NN`: trace against the ACs, and list those tests as untraced with "re-trace with `write it <ref>`"
 2. **Tests:** Grep `qa-artifacts/test-cases/**` for `**Source:** <ref>` (or take the given folder). In those folders, read each `Test#<nn>.md` `**Covers:**` line and the `# Test#<nn> | AC-<NN>` / `R-<NN>` comments in the `.feature`
-3. **Latest result:** for each test, take the newest `runs/*/results.json` that contains its spec, and its status there (plus the run date)
-4. **Bugs:** `issue.list` with label `bug` and the test folder name as search text (bug bodies cite the test path), plus bugs that reference the story ref. Keep the open ones
+3. **Planned:** if a test plan has `**Source:** <ref>` (`qa-artifacts/test-plans/`, or the `test-plan` issue linked to the story), read its Planned tests rows per requirement. A planned test with no `Test#<nn>.feature` in the plan's test folder is **planned, not written**
+4. **Latest result:** for each test, take the newest `runs/*/results.json` that contains its spec, and its status there (plus the run date)
+5. **Bugs:** `issue.list` with label `bug` and the test folder name as search text (bug bodies cite the test path), plus bugs that reference the story ref. Keep the open ones
 
 ## Phase 2: Classify each AC
 
@@ -25,6 +26,7 @@ For each story:
 | 🟢 covered — passing | ≥1 test, all passing in their latest run |
 | 🔴 covered — failing | ≥1 test failing, or an open bug |
 | 🟡 covered — not run | tests exist, no run found |
+| 🔵 planned — not written | only the plan has tests for it: run `write it Plan: <ref>` |
 | ⚪ untested | no test mentions this AC |
 
 Tests marked `**Covers:** untraced` are listed separately. They test something the story doesn't state, which is a hint the story is incomplete.
