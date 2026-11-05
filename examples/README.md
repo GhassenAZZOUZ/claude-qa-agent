@@ -7,6 +7,7 @@ the shape and level of detail you get from each WAY.
 | File | Produced by | Trigger |
 |---|---|---|
 | [test-plans/checkout-discount-2026-10-09.md](test-plans/checkout-discount-2026-10-09.md) | `test-plan` (WAY 19) → `test-plan` issue, approved | `plan it #148` |
+| [plan-review.md](plan-review.md) | `review-plan` (WAY 20) → review comment on the plan, run by `plan it` | `review plan #150` |
 | [test-cases/checkout-discount-2026-10-09/](test-cases/checkout-discount-2026-10-09/) | `test-writer` (WAY 1/4) from the approved plan | `write it Plan: #150` |
 | [bug-issue.md](bug-issue.md) | `bug-report` skill → GitLab issue (WAY 1/3) | `e2e it #148` / `report it …` |
 | [session-report.md](session-report.md) | `session-report` skill (WAY 1) | `e2e it #148` |

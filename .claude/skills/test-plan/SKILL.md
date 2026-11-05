@@ -1,6 +1,6 @@
 ---
 name: test-plan
-description: WAY 19 — design a test plan before any test code. Use when the user says "plan it", "plan tests", "test plan", "design tests" with requirements (text or a tracker issue), optional App/Spec/MR or PR. Output is the test plan (scope, levels, one row per Test#<nn> with category, tags, covers, priority, coverage, entry/exit criteria, risks), filed for approval; `write it Plan:` / `e2e it Plan:` then write exactly that plan. Also holds the plan format every other WAY reads.
+description: WAY 19 — design a test plan before any test code. Use when the user says "plan it", "plan tests", "test plan", "design tests" with requirements (text or a tracker issue), optional App/Spec/MR or PR. Output is the test plan (scope, levels, one row per Test#<nn> with category, tags, covers, priority, coverage, entry/exit criteria, risks), reviewed by `review-plan` (WAY 20), filed for approval; `write it Plan:` / `e2e it Plan:` then write exactly that plan. Also holds the plan format every other WAY reads.
 ---
 
 # WAY 19 — Test Plan
@@ -9,7 +9,7 @@ Test design is its own reviewed step. The story (WAY 6) owns **what the product 
 
 ## Step 1: Gather inputs
 **Required (ask if missing):** requirements, as plain text or an issue ref/URL (`issue.get`, per the `tracker` skill), or `Plan: <ref or path>` to change an existing plan (see **Changing a plan**).
-**Optional:** `App:` (adds UI context) · `Spec:` (OpenAPI, adds API rows) · `MR:`/`PR:` (comment the plan summary on it) · `visual: true` · `approve: true` (the user approves in the same message).
+**Optional:** `App:` (adds UI context) · `Spec:` (OpenAPI, adds API rows) · `MR:`/`PR:` (comment the plan summary on it) · `visual: true` · `approve: true` (the user approves in the same message) · `review: off` (skip the automatic review) · `budget: <minutes>` (passed to the review).
 
 ## Phase 1: Check requirements
 Apply the `requirements-analysis` skill inline (§1–3), exactly as `write-tests` Phase 1: build the model, run the readiness gate, and in **one** message ask the open questions and show the derived `R-NN` table when the source has no ACs. Wait for the answers. A spec with no story or text skips the gate (§2).
@@ -17,11 +17,12 @@ Apply the `requirements-analysis` skill inline (§1–3), exactly as `write-test
 ## Phase 2: Design
 1. Run `test-writer` in **`plan` mode** with the confirmed model (`ui`; again with `api` and the **same** plan path when `Spec:` is given). It writes only `./qa-artifacts/test-plans/<feature>-<YYYY-MM-DD>.md` in the format below, and no `.feature` / `.steps.ts`
 2. Check it: `node ${CLAUDE_PLUGIN_ROOT}/scripts/plan-check.mjs <plan path>`. On errors, run `test-writer` (`plan` mode) once more with the error list. Warnings are shown to the user, not fixed silently
+3. **Review** (unless `review: off`): run the `review-plan` skill's Phases 1–3 on the plan file. Its scorecard and proposals are shown in Phase 3 with the plan
 
 ## Phase 3: File and ask for approval
 1. Set `**Status:** awaiting-approval`, then file the plan: `issue.create("Test plan: <feature>", <plan body>, [test-plan, plan-awaiting-approval])`, then `issue.link` it to the source story when there is one. Put the issue ref in the plan's `**Plan:**` line and save the file again. If the tracker is unavailable, keep the local file only and say so
 2. With `MR:`/`PR:`: `change.comment` with the Planned tests table and the coverage line
-3. Show the **Planned tests** and **Coverage** tables and ask: *"Approve this plan, or tell me what to change (add, drop, re-level, re-prioritize a Test#)?"*
+3. Show the **Planned tests** and **Coverage** tables, then the review's score and proposals, and ask: *"Pick the proposals to apply (all / A1,R2 / none), and tell me what else to change. Approve the plan as it is then?"* Apply the picks per `review-plan` Phase 5 (its floor check included), then show the updated tables. A score below 70 gets the review's warning line; it never blocks approval
 4. **On approval** (or `approve: true`): set `**Status:** approved` in the file, `issue.update(ref, body, labels+ [plan-approved], labels- [plan-awaiting-approval])`. Next step to offer: `write it Plan: <ref>` or `e2e it Plan: <ref>`
 5. **On changes**: apply them per **Changing a plan**, re-run the check, and ask again
 
@@ -92,6 +93,10 @@ The one definition. `test-writer` writes it, `plan-check.mjs` checks it, WAY 1/4
 ## Risks
 - <risk> → <mitigation>
 
+## Review log
+| Date | Score | Applied | Rejected |
+|---|---|---|---|
+
 ## Retired
 | Test | Reason |
 |---|---|
@@ -114,6 +119,7 @@ Rules:
   | `could` | P3 | same |
 
   The priority tag matches it: P0 `@critical`, P1 `@high`, P2 `@medium`, P3 `@low`
-- **Coverage**: one line per requirement. Positive = a `happy_path` row covers it. Negative = a `negative` (or `security` / `permissions` denial) row covers it, required when the requirement takes input or an action. Required categories = every category §4 marks required for it is present. A cell that is empty on purpose says why: a requirement that is itself a rejection ("expired code is rejected") has its negative test as its main flow. `plan-check.mjs` fails a requirement with no test and warns on a missing positive or negative one
+- **Coverage**: one line per requirement. Positive = a `happy_path` row covers it. Negative = a `negative` (or `security` / `permissions` denial) row covers it, required when the requirement takes input or an action. Required categories = every category §4 marks required for it is present. A cell that is empty on purpose says why: a requirement that is itself a rejection ("expired code is rejected") has its negative test as its main flow. A cell covered by another category's rows says which (`✅ (8 and 64 rows)`: a boundary Outline has an accepted and a rejected side). `plan-check.mjs` fails a requirement with no test and warns on a missing positive or negative one
 - **IDs**: `Test#01` upward, two digits, never renumbered, never reused (Retired keeps them)
+- **Review log**: one line per review (`review-plan`), with the proposals applied and the ones the user rejected, so the next review doesn't propose them again. Optional until the first review
 - The body ends with the report footer above: it is filed verbatim as the `test-plan` issue

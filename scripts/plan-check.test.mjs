@@ -91,3 +91,58 @@ test('drift: exactly the planned files pass, and --plan-only skips the folder', 
   assert.equal(check(undefined, all).status, 0);
   assert.equal(check(undefined, ['Test#09.feature'], '--plan-only').status, 0);
 });
+
+// --against: the coverage floor a review (WAY 20) must keep when it applies removals
+function against(edit) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'plan-against-'));
+  const oldPlan = path.join(dir, 'old.md'), newPlan = path.join(dir, 'new.md');
+  fs.writeFileSync(oldPlan, example);
+  fs.writeFileSync(newPlan, edit(example));
+  const r = spawnSync(process.execPath, [script, newPlan, '--plan-only', '--against', oldPlan], { encoding: 'utf8' });
+  fs.rmSync(dir, { recursive: true, force: true });
+  return { status: r.status, out: r.stdout + r.stderr };
+}
+const TEST05 = '| Test#05 | A second code is refused once one is applied | negative | ui | @e2e @negative @critical @checkout-discount | AC-04 | P0 |\n';
+
+test('--against: retiring the only negative test of a requirement breaks the floor', () => {
+  const r = against(s => s.replace(TEST05, '').replace('| Test#06 | Duplicate', '| Test#05 | Merged away |\n| Test#06 | Duplicate'));
+  assert.equal(r.status, 1);
+  assert.match(r.out, /coverage floor: AC-04 would lose its only negative test/);
+  assert.match(r.out, /AC-04 has no planned test/);
+});
+
+test('--against: an ID that vanishes instead of moving to Retired fails', () => {
+  const r = against(s => s.replace('| Test#06 | Duplicate of Test#03: same XSS payload class on the same field |\n', ''));
+  assert.equal(r.status, 1);
+  assert.match(r.out, /Test#06 disappeared/);
+});
+
+test('--against: retiring a redundant test and adding one keeps the floor', () => {
+  const add = '| Test#07 | Code field rejects SQL injection | security | api | @api @security @negative @high | AC-03 | P1 |\n';
+  const r = against(s => s
+    .replace('| Test#03 | Code input rejects an XSS payload | security | ui | @e2e @security @negative @high @checkout-discount | AC-03 | P1 |\n', add)
+    .replace('| Test#06 | Duplicate', '| Test#03 | Covered by Test#07 at the api level |\n| Test#06 | Duplicate'));
+  assert.equal(r.status, 0, r.out);
+});
+
+// --estimate: medians from past runs, defaults otherwise, and the P0+P1 budget
+test('--estimate: median of past runs, Outline rows by default, budget warning', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'plan-estimate-'));
+  const plan = path.join(dir, 'qa-artifacts/test-plans/plan.md');
+  fs.mkdirSync(path.dirname(plan), { recursive: true });
+  fs.writeFileSync(plan, example);
+  const spec = (id, ms) => ({ file: `.features-gen/e2e/test-cases/checkout-discount-2026-10-09/Test#${id}.feature.spec.js`, tests: [{ results: [{ duration: ms }] }] });
+  for (const [run, ms] of [['r1', 30000], ['r2', 90000], ['r3', 40000]]) {
+    fs.mkdirSync(path.join(dir, 'qa-artifacts/runs', run), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'qa-artifacts/runs', run, 'results.json'),
+      JSON.stringify({ suites: [{ specs: [spec('01', ms), spec('02', 5000), { ...spec('02', 5000) }] }] }));
+  }
+  const r = spawnSync(process.execPath, [script, plan, '--plan-only', '--estimate', '--budget', '1'], { encoding: 'utf8' });
+  fs.rmSync(dir, { recursive: true, force: true });
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /Test#01 P0 ui 40s \(median of 3 runs\)/);
+  assert.match(r.stdout, /Test#02 P0 ui 10s \(median of 3 runs\)/);  // two Outline rows in one feature add up
+  assert.match(r.stdout, /Test#04 P2 ui 1m20s \(default 20s × 4 rows\)/);
+  assert.match(r.stdout, /P0\+P1 1m30s · all 2m50s · 2\/5 measured · budget 1m/);
+  assert.match(r.stdout, /⚠ P0\+P1 tests are estimated at 1m30s, over the 1 min budget/);
+});

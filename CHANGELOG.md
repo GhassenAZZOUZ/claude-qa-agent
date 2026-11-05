@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+WAY 20 (review a test plan): an independent reviewer scores the plan and proposes test cases to add, remove, merge or modify before you approve it ([#43](https://github.com/GhassenAZZOUZ/claude-qa-agent/issues/43)).
+
+- **WAY 20 `review-plan`** (`review plan`), run automatically by `plan it` (`review: off` to skip): new read-only `test-plan-reviewer` agent, never the one that wrote the plan. It scores the plan out of 100 on nine dimensions with evidence (requirement coverage, required categories, element checklists, risk ↔ priority, redundancy, test level, traceability, assertable outcomes, feasibility) and proposes numbered `ADD` / `REMOVE` / `MERGE` / `MODIFY` changes, each with its reason and the test design technique (equivalence partitioning, boundary values, decision table, state transition, pairwise, error guessing from closed bugs of the last 90 days). `flaky-triage` data turns into stabilization notes, never removals
+- **You pick** (all / by ID / none); nothing changes before. A score under 70 warns, never blocks. Applied changes keep IDs (removed and merged ones move to Retired), the plan goes back to `plan-awaiting-approval`, and the review is posted on the plan issue. A new `## Review log` in the plan records what was applied and rejected, so the next review doesn't propose it again
+- **`plan-check.mjs --against <previous plan>`** enforces the coverage floor: no requirement loses its only positive or negative test, and no ID disappears. **`--estimate [runs dir] --budget <min>`** estimates each test's run time (median of past `results.json`, else 20 s per ui and 2 s per api row) and warns when the P0+P1 tests exceed `QA_PLAN_BUDGET_MIN` (new `.env` key, default 10). Coverage cells like `✅ (8 and 64 rows)` now count as explained
+- New example `examples/plan-review.md` (and a Review log in the example plan). New evals: `routing-review-plan`, `review-plan-proposes-fixes` (a known gap, duplicate and wrong level), `review-plan-converges`
+- `scripts/setup-project-board.sh` moves closed issues to Done on every run; #42 is Done, #43 In review
+
 WAY 19 (test plan): test design becomes its own reviewed step, between the story and the code ([#42](https://github.com/GhassenAZZOUZ/claude-qa-agent/issues/42)).
 
 - **WAY 19 `test-plan`** (`plan it`): requirements → readiness gate → `test-writer` in the new `plan` mode designs a test plan and writes no code: scope, levels (ui / api, lowest level with the same oracle), one row per `Test#<nn>` with category, tags, covers and a **P0–P3 priority** (from must/should/could, raised when a failure would charge a wrong amount, bypass auth, expose or lose data), coverage, environments, entry/exit criteria, risks, and a **Retired** list (IDs are never renumbered or reused). Filed as a `test-plan` issue with `plan-awaiting-approval`; approving swaps it to `plan-approved`, which the agent does only on your OK

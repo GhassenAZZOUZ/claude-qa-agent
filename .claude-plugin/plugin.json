@@ -2,7 +2,7 @@
   "name": "qa-agent",
   "displayName": "DevOps QA Agent",
   "version": "1.3.0",
-  "description": "QA workflows for Claude Code on any provider (GitLab, GitHub, Jira, Azure DevOps, Bitbucket): test plans approved before code, Playwright-BDD UI E2E, API & API integration tests with accessibility checks, bug filing, fix verification, MR/PR test impact, flaky triage, test healing, exploratory testing, traceability, release readiness, load tests, CI setup.",
+  "description": "QA workflows for Claude Code on any provider (GitLab, GitHub, Jira, Azure DevOps, Bitbucket): test plans reviewed and approved before code, Playwright-BDD UI E2E, API & API integration tests with accessibility checks, bug filing, fix verification, MR/PR test impact, flaky triage, test healing, exploratory testing, traceability, release readiness, load tests, CI setup.",
   "author": {
     "name": "Ghassen Azzouz",
     "url": "https://github.com/GhassenAZZOUZ"
@@ -38,6 +38,7 @@
     "./.claude/agents/mr-test-impact.md",
     "./.claude/agents/test-execution-agent.md",
     "./.claude/agents/test-healer.md",
+    "./.claude/agents/test-plan-reviewer.md",
     "./.claude/agents/test-writer.md",
     "./.claude/agents/user-story-enhancer.md"
   ],
