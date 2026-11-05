@@ -15,6 +15,7 @@ TITLE="QA Agent Roadmap"
 # issue | priority | effort | status. Ranking rules are in CONTRIBUTING.md ("Picking work").
 ITEMS=(
   "42|P0|L|Needs info"   # US-05 plan it: test design separate from story enhancement
+  "43|P1|M|Blocked"      # US-06 review plan, depends on #42
   "38|P0|M|Needs info"   # US-01 containerised local runner
   "39|P0|M|Needs info"   # US-02 evals for decision skills
   "9|P1|S|Ready"         # field-test the provider adapters (umbrella of #27-#30)
