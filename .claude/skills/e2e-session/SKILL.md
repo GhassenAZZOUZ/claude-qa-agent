@@ -1,6 +1,6 @@
 ---
 name: e2e-session
-description: WAY 1 — full UI E2E (browser) session. Use when the user says "e2e it", "test it", "run e2e", "start testing", "qa this" — requirements (text or a tracker issue) → Gherkin/playwright-bdd tests → run → heal or file bugs → session report.
+description: WAY 1 — full UI E2E (browser) session. Use when the user says "e2e it", "test it", "run e2e", "start testing", "qa this" — requirements (text or a tracker issue) or an approved test plan → plan approved → Gherkin/playwright-bdd tests → run → heal or file bugs → session report.
 ---
 
 # WAY 1 — Full UI E2E Session
@@ -9,7 +9,7 @@ Run CLAUDE.md **Step 0** (environment) first, and pick the providers per the `tr
 
 ## Step 1: Gather inputs
 You need two things. Ask before proceeding if either is missing:
-- **Requirements**: plain text, or an issue ref/URL (`#148`, `SHOP-148`)
+- **Requirements**: plain text, an issue ref/URL (`#148`, `SHOP-148`), or `Plan:` (an approved test plan, which skips Phase 1)
 - **App URL**: resolved from `--env` (ask if ambiguous)
 
 For an issue ref: fetch it (`issue.get`) and extract the title, body, labels, linked MRs/PRs and milestone. Use that as the requirements, and don't ask the user again.
@@ -17,10 +17,10 @@ For an issue ref: fetch it (`issue.get`) and extract the title, body, labels, li
 ## Phase 1: Check requirements
 Apply the `requirements-analysis` skill inline (§1–3): build the requirements model from the text or issue, and run the readiness gate. In **one** message, ask the gate's open questions and, when the source has no ACs, show the derived `R-NN` Requirements table for confirmation. Wait for the answers and update the model. Don't test against guesses. Scenario selection (§4–5) happens inside `test-writer`.
 
-## Phase 2: Write test cases
-1. Run `test-writer` (`ui` type) with the confirmed requirements model and the raw requirements (plus `visual: true` if the user asked for visual checks)
-2. It writes `Test#<nn>.{md,feature,steps.ts}` triples under `./qa-artifacts/test-cases/[feature]-[YYYY-MM-DD]/`, plus the index `.md`
-3. File a `test-plan` issue (the index content) and one `test-case` issue per test, each linked to the test plan (`issue.link`, per the `tracker` skill)
+## Phase 2: Plan, approve, write
+1. **Plan**: with `Plan:`, read it per the `test-plan` skill's **Reading a plan**. Otherwise run that skill's Phase 2–3 (`ui` type, plus `visual: true` if the user asked for visual checks): `test-writer` in `plan` mode, `plan-check.mjs`, the `test-plan` issue, and the approval question. `plan: auto` skips the question (status `auto-approved`, label `plan-auto-approved`). Nothing is written or run before approval
+2. **Write**: `test-writer` in `write` mode with the approved plan writes exactly its `Test#<nn>.{md,feature,steps.ts}` triples into the plan's test folder, plus the index `.md`. Then `node ${CLAUDE_PLUGIN_ROOT}/scripts/plan-check.mjs <plan path>`, and report anything it flags
+3. File one `test-case` issue per test, each linked to the `test-plan` issue (`issue.link`, per the `tracker` skill)
 
 ## Phase 3: Execute
 Run `test-execution-agent` with `--project=e2e`, scoped to the Phase 2 folder. Accessibility checks run inside each scenario, and failure artifacts are captured automatically.

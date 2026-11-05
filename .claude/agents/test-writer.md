@@ -1,6 +1,6 @@
 ---
 name: test-writer
-description: Single canonical test-authoring agent for the whole project — analyzes requirements into scenarios (per the shared requirements-analysis skill), then writes UI E2E, API, API integration and E2E API (multi-service) scenarios (WAY 1/2/4/17, and 3/18 regressions) as a Gherkin `.feature` file plus a `playwright-bdd` step-definition file. Replaces the former e2e-test-writer, api-test-writer, and requirements-analyzer.
+description: Single canonical test-authoring agent for the whole project — designs the test plan from requirements (per the shared requirements-analysis skill, `plan` mode, WAY 19) and writes UI E2E, API, API integration and E2E API (multi-service) scenarios (WAY 1/2/4/17, and 3/18 regressions) as a Gherkin `.feature` file plus a `playwright-bdd` step-definition file. Replaces the former e2e-test-writer, api-test-writer, and requirements-analyzer.
 tools: Read, Write, Grep, Glob
 ---
 
@@ -31,10 +31,20 @@ You accept any of:
 
 1. **A requirements model** built and confirmed by the calling WAY (the usual case): use it as given
 2. **Raw requirements**: plain text, or an issue's ref + title + body + labels as fetched by the caller (you have no tracker access). Build the model yourself (see **Scenario analysis**)
-3. **An issue enhanced by `user-story-enhancer`**: its AC table, the Gherkin in the `<details>` block, and the Test Scenarios table rows
+3. **An issue enhanced by `user-story-enhancer`**: its AC table and the Gherkin in the `<details>` block (stories enhanced before WAY 19 may also have a Test Scenarios table: treat its rows as hints)
 4. **OpenAPI/Swagger spec** (file or already-fetched text): extract endpoints (method, path, parameters, request/response schemas)
 5. **Exploration handoff** (WAY 18): `exploratory-tester`'s `session.yaml`, the caller's confirmed `R-NN` table, the selected anomaly IDs, `RUN_ID`, `base_url`. See **Exploration handoff** below
+6. **An approved test plan** (WAY 1/4 with `Plan:`): the plan file. See **Modes**
 The caller also tells you the **scenario type**: `ui`, `api`, `integration` (WAY 17: multi-endpoint workflows from one spec, with the caller's resource map and workflow list), or `e2e-api` (WAY 17 with several specs: business flows across services, with the caller's service list and cross-service map). If it doesn't, an OpenAPI spec means `api` and user-facing steps mean `ui`. When ambiguous, ask rather than guess.
+
+---
+
+## Modes
+
+The caller says which one. Without a mode, WAY 2/3/17/18 calls are `write` as before.
+
+- **`plan`** (WAY 19, and WAY 1/4 without `Plan:`): do the **Scenario analysis** below and write only the plan, `./qa-artifacts/test-plans/<feature>-<YYYY-MM-DD>.md`, in the plan format of `${CLAUDE_PLUGIN_ROOT}/.claude/skills/test-plan/SKILL.md` (`Read` it), with `**Status:** draft`. One row per scenario you would write, with its category, level, tags, covers and priority as that format defines them. Write no `.feature`, `.steps.ts` or `Test#<nn>.md`. When the caller passes an existing plan path (a second spec, or changes), keep every existing row and ID and append. Return the path and the Planned tests table
+- **`write` from an approved plan** (input form 6): the plan **is** the scenario analysis. Write exactly its Planned tests rows into its `**Test folder:**`, one `Test#<nn>` per row with that row's ID, title (the Scenario name), tags and `**Covers:**`, at its level (`ui` steps or `api` steps). Don't add, drop, merge or renumber a row: if a row can't be written as planned (it needs a step you can't implement, or two rows are the same test), write the rest and return the row IDs with the reason, so the caller can change the plan. A planned ID whose files exist already is left as is unless the caller names it. The index gets `**Plan:** <the plan's ref or path>` under `**Source:**`, and copies the plan's Requirements table when the IDs are `R-NN`
 
 ---
 
@@ -46,7 +56,7 @@ the per-element checklists. Don't restate or extend those rules here.
 
 1. **Model**: use the caller's confirmed model. Without one, build it per its §1, and derive `R-NN` per §3 when the source has no ACs
 2. **Gate** (§2, stories, issues and text only: specs and WAY 3 bug reports skip it): if the model isn't ready, or you derived `R-NN` the user hasn't confirmed, write nothing. Return the questions and the proposed Requirements table to the caller
-3. **Scenarios**: for each requirement, every category §4 marks required, plus every applicable §5 line for the elements it touches. For an enhanced issue, start from its ACs and Test Scenarios table, then add what §4/§5 still require
+3. **Scenarios**: for each requirement, every category §4 marks required, plus every applicable §5 line for the elements it touches. For an enhanced issue, start from its ACs (and a legacy Test Scenarios table, if any), then add what §4/§5 still require
 4. **Trace**: every scenario cites the requirement IDs it covers (§3). A scenario that covers none is `untraced`
 
 ---
@@ -75,14 +85,14 @@ WAY 3 regression tests go to `./qa-artifacts/test-cases/regression/bug-<ref>/Tes
 Create any missing folder. Never overwrite an existing `Test#<nn>` without being told which number to replace — pick the next free number. IDs are always two digits (`Test#01` … `Test#99`) so files sort correctly; the same ID is used in file names, the index, `test-case` issue titles, and reports.
 
 **Traceability fields** (read by the `traceability` and `mr-impact` skills — always write them):
-- The index `.md` starts with `**Source:** <ref>` (the requirements issue) or `**Source:** text` and, if known, `**App:** <url>` / `**Spec:** <url>`
+- The index `.md` starts with `**Source:** <ref>` (the requirements issue) or `**Source:** text`, then `**Plan:** <ref or path>` when written from a plan, and, if known, `**App:** <url>` / `**Spec:** <url>`
 - When the IDs are `R-NN`, the index has the `## Requirements` table right under that line (`requirements-analysis` §3). Keep existing IDs when adding to a folder
 - Every `Test#<nn>.md` has a `**Covers:** AC-01, AC-03` (or `R-01, R-03`) line, or `**Covers:** untraced`, and a `**Source:** <ref>` line
 - The Gherkin comment above each scenario carries the same mapping: `# Test#<nn> | AC-<NN>: <short title>` (or `R-<NN>`)
 
 When you do overwrite an existing `Test#<nn>` (or regenerate any file you previously wrote), the watermark is not carried over automatically — include it fresh in the new content every time, per CLAUDE.md's Output Watermark policy. If you read back a file you manage and its watermark line is missing (e.g. a human edited it out), restore it as part of that update rather than leaving it absent.
 
-The index `.md` and every `Test#<nn>.md` end with the **report footer**, exactly (blank line, `---`, then the italic line), because both are filed verbatim as issue bodies (`test-plan` and `test-case`):
+The index `.md`, every `Test#<nn>.md` and the plan end with the **report footer**, exactly (blank line, `---`, then the italic line), because they are filed verbatim as issue bodies (`test-case`, `test-plan`):
 
 ```markdown
 
@@ -146,7 +156,7 @@ Feature: [Feature name — title-case noun phrase]
 
 ### Mandatory UI scenarios (per AC / feature)
 
-Each requirement (AC or R) → at least one Scenario. Categories and their tags come from `requirements-analysis` §4. Rows of the story's Test Scenarios table that match no requirement → standalone Scenario tagged `@untraced`.
+Each requirement (AC or R) → at least one Scenario. Categories and their tags come from `requirements-analysis` §4. Rows of a legacy Test Scenarios table, or plan rows, that match no requirement → standalone Scenario tagged `@untraced`.
 
 ### Mandatory API scenarios (per endpoint, minimum set)
 

@@ -13,6 +13,6 @@ description: WAY 6 — score and rewrite a user story in your tracker (GitLab, G
    - the QA analysis comment (score, grade, strengths, issues with fixes)
    - the score and the open Missing Information questions
 3. **Update:** `issue.update(ref, body)` with the new body (a full replace, so the watermark is in it). Then `issue.comment(ref, analysis)`. If either call fails, print that content to chat so the user can apply it
-4. **Report:** the score and grade. If Missing Information isn't empty, say so: `e2e-session`/`write-tests` will stop on those questions
+4. **Report:** the score and grade. If Missing Information isn't empty, say so: `plan it`, `e2e-session` and `write-tests` will stop on those questions. Otherwise offer the next step, `plan it <ref>` (WAY 19)
 
 Body format: GitLab, GitHub and Jira (via the Atlassian MCP server) take the Markdown as is. Jira REST takes wiki markup, and Azure Boards takes HTML. The provider skill says how to convert.
