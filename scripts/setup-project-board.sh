@@ -13,9 +13,10 @@ REPO="${2:-claude-qa-agent}"
 TITLE="QA Agent Roadmap"
 
 # issue | priority | effort | status. Ranking rules are in CONTRIBUTING.md ("Picking work").
+# A closed issue goes to Done whatever its row says, so finished work never sits in Ready.
 ITEMS=(
-  "42|P0|L|Needs info"   # US-05 plan it: test design separate from story enhancement
-  "43|P1|M|Blocked"      # US-06 review plan, depends on #42
+  "42|P0|L|Done"         # US-05 plan it (WAY 19), merged in #44
+  "43|P1|M|In review"    # US-06 review plan (WAY 20)
   "38|P0|M|Needs info"   # US-01 containerised local runner
   "39|P0|M|Needs info"   # US-02 evals for decision skills
   "9|P1|S|Ready"         # field-test the provider adapters (umbrella of #27-#30)
@@ -94,6 +95,7 @@ set_option() { # item, field, option
 # Items
 for row in "${ITEMS[@]}"; do
   IFS='|' read -r issue prio effort status <<<"$row"
+  [[ "$(gh issue view "$issue" --repo "$OWNER/$REPO" --json state --jq .state)" == CLOSED ]] && status=Done
   item=$(gh project item-add "$NUMBER" --owner "$OWNER" \
     --url "https://github.com/$OWNER/$REPO/issues/$issue" --format json --jq '.id')
   set_option "$item" Priority "$prio"

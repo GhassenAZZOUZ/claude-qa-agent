@@ -6,7 +6,7 @@ An autonomous QA agent for DevOps-oriented teams. Give it an issue (GitLab, GitH
 
 [![validate](https://github.com/GhassenAZZOUZ/claude-qa-agent/actions/workflows/validate.yml/badge.svg)](https://github.com/GhassenAZZOUZ/claude-qa-agent/actions/workflows/validate.yml)
 
-**Quick start:** [Setup](#setup) · **Modes:** [Nineteen Modes](#nineteen-modes) · **See the output:** [examples/](examples/) · **Help wanted:** [Roadmap](#roadmap) · [Contributing](CONTRIBUTING.md)
+**Quick start:** [Setup](#setup) · **Modes:** [Twenty Modes](#twenty-modes) · **See the output:** [examples/](examples/) · **Help wanted:** [Roadmap](#roadmap) · [Contributing](CONTRIBUTING.md)
 
 ---
 
@@ -22,7 +22,7 @@ From one user story (*"apply a discount code at checkout"*), the agent produces:
 |---|---|---|
 | Bug tracking | One tracker, hard-wired | **GitLab, GitHub, Jira or Azure Boards**: same workflows, your tracker |
 | Test management | Paid SaaS | **Markdown files in your repo + issues in your tracker** |
-| Test design | Tests generated straight from the prompt | **`plan it`: a reviewed test plan (scope, levels, P0–P3, coverage) you approve before any code is written** |
+| Test design | Tests generated straight from the prompt | **`plan it`: a test plan (scope, levels, P0–P3, coverage), scored and improved by an independent reviewer, that you approve before any code is written** |
 | Browser tests | UI E2E only | UI E2E **+ accessibility (axe) built into every scenario** |
 | API testing | None | **`api it` mode — OpenAPI validation + functional tests** |
 | CI diagnosis | None | **`ci it`: root cause of a failed GitLab / GitHub Actions / Azure / Bitbucket run** |
@@ -64,7 +64,7 @@ Every generated `.feature`/`.steps.ts` test file starts with the same attributio
 
 ---
 
-## Nineteen Modes
+## Twenty Modes
 
 Each mode ("WAY") is a skill. Type a trigger phrase, or `/<skill>` directly (`/qa-agent:<skill>` with the plugin). Only the triggered WAY's instructions are loaded.
 
@@ -90,6 +90,7 @@ Each mode ("WAY") is a skill. Type a trigger phrase, or `/<skill>` directly (`/q
 | 17 | `integration-tests` | `integration it` / `e2e api it` | One spec → API integration tests; several specs → E2E API tests across services (async effects polled), no run |
 | 18 | `explore-session` | `explore it` | Charter → live browser exploration → `test-writer` turns flows + anomalies into bdd tests → run now or later → bugs (with approval) |
 | 19 | `test-plan` | `plan it #148` | Requirements → test plan (scope, levels, one row per `Test#<nn>` with category, P0–P3 priority, coverage, entry/exit criteria, risks) → your approval. No code |
+| 20 | `review-plan` | `review plan #150` | Independent review of a test plan: score /100 with evidence → ADD / REMOVE / MERGE / MODIFY proposals with technique → applied on your pick, AC coverage kept. Run by `plan it` |
 
 ### Test levels
 
@@ -123,7 +124,7 @@ All tools except Claude are free and open source.
 
 ```
 devops-qa-agent/
-├── CLAUDE.md                          # Routing table (19 WAYs → skills, one trigger each) + shared rules + watermark policy
+├── CLAUDE.md                          # Routing table (20 WAYs → skills, one trigger each) + shared rules + watermark policy
 ├── README.md                          # This file
 ├── LICENSE · CONTRIBUTING.md · SECURITY.md · CODE_OF_CONDUCT.md · CHANGELOG.md
 ├── .claude-plugin/                    # plugin.json (manifest, bundled GitLab + Playwright MCP, install-time settings) + marketplace.json
@@ -132,7 +133,7 @@ devops-qa-agent/
 ├── scripts/
 │   ├── validate.py                    # Frontmatter, names, CLAUDE.md references + size, triggers, plugin manifest, watermarks (CI)
 │   ├── session-context.mjs            # Plugin hook: loads CLAUDE.md rules into each session
-│   ├── plan-check.mjs (+ .test.mjs)   # Checks a test plan's rows, coverage floor and drift vs its test folder (WAY 1/4/19, CI)
+│   ├── plan-check.mjs (+ .test.mjs)   # Checks a test plan's rows, coverage floor (also vs its previous version), drift vs its test folder, run-time estimate (WAY 1/4/19/20, CI)
 │   └── selftest.mjs                   # Runs test-writer's templates end to end on a demo app (CI)
 ├── examples/                          # Illustrative output of every WAY on a fictional shop
 ├── evals/                             # `claude plugin eval` cases: routing, readiness gate, plan-first + write-the-approved-plan, spec boundaries, WAY 17 and WAY 18 handoff end to end (CI: weekly / `run-evals` label)
@@ -145,7 +146,7 @@ devops-qa-agent/
 ├── .claude/
 │   ├── settings.example.json          # Copy to settings.json and fill in
 │   ├── skills/
-│   │   ├── qa-setup/ e2e-session/ … test-plan/   # WAY 0–19 skills, one folder each (see "Nineteen Modes")
+│   │   ├── qa-setup/ e2e-session/ … review-plan/   # WAY 0–20 skills, one folder each (see "Twenty Modes")
 │   │   ├── flaky-triage/flaky.mjs     # Run-history aggregator used by WAY 13
 │   │   ├── tracker/                   # Shared: provider-neutral issue / MR-PR / CI operations, labels, failures
 │   │   ├── provider-gitlab/ provider-github/ provider-jira/ provider-azure-devops/ provider-bitbucket/
@@ -153,7 +154,7 @@ devops-qa-agent/
 │   │   ├── session-report/            # Shared: WAY 1/2 session summary
 │   │   ├── user-story-format/         # Shared: the one user-story body format
 │   │   └── requirements-analysis/     # Shared: intake, readiness gate, requirement IDs, scenario categories
-│   └── agents/                        # 10 sub-agents (isolated context)
+│   └── agents/                        # 11 sub-agents (isolated context)
 │       ├── test-writer.md                 # Requirements → Test#<nn> Gherkin + playwright-bdd (UI/API/integration/E2E API/visual)
 │       ├── test-execution-agent.md        # Runs suites, captures artifacts, classifies outcomes
 │       ├── test-healer.md                 # Repairs locator failures from error-context snapshots
@@ -471,6 +472,22 @@ write it Plan: #150    # or: e2e it Plan: #150
 
 It's filed as a `test-plan` issue labelled `plan-awaiting-approval` and shown to you: approve it, or change it (`plan it Plan: #150 drop Test#05`, `… make Test#04 an api test`). IDs are never renumbered or reused: a dropped test moves to **Retired**. Approving swaps the label to `plan-approved` (you can also do that in the tracker). `write it Plan:` / `e2e it Plan:` then write exactly the planned tests, and `scripts/plan-check.mjs` flags any drift between the plan and the test folder. `trace it` shows tests that are planned but not written yet, and `test mr` reports results by priority, P0 first.
 
+### WAY 20 — Review a Test Plan
+
+```
+review plan #150       # or: review plan Plan: qa-artifacts/test-plans/checkout-discount-2026-10-09.md
+```
+
+`plan it` runs it automatically before asking for approval (`review: off` to skip). A separate, read-only agent, `test-plan-reviewer`, which never wrote the plan, scores it out of 100 on nine dimensions with evidence: requirement coverage, required categories, element checklists, risk ↔ priority, redundancy, test level, traceability, assertable outcomes and feasibility (including the P0+P1 run time against `QA_PLAN_BUDGET_MIN`, default 10 min, from past runs or defaults). It can also use closed bugs from the last 90 days and `flaky-triage` data. Then it proposes changes, each with a reason and, for an addition, the test design technique:
+
+| ID | Change | Test | Reason | Technique |
+|---|---|---|---|---|
+| A1 | ADD | Test#07 | AC-04 allows one code per order; two tabs can both apply it | state transition |
+| R1 | REMOVE | Test#06 | duplicate of Test#03: same partition, same level | equivalence partitioning |
+| M1 | MODIFY | Test#02 | P1 → P0: an expired code accepted charges a wrong amount | — |
+
+You pick: all, by ID (`A1,R2`), or none. Nothing changes before that. A low score warns, it never blocks. Picked changes are applied without renumbering. `plan-check.mjs --against` refuses any removal that would leave an AC without its only positive or negative test. The plan goes back to awaiting approval and the review is posted on the plan issue. Its **Review log** records what you rejected, so the next review doesn't propose it again. See the [example review](examples/plan-review.md).
+
 ---
 
 ## What the Agent Produces
@@ -572,7 +589,7 @@ Sev-3 (Medium) / P2 — This sprint
 
 ## Sub-Agents Reference
 
-All 10 sub-agents live in `.claude/agents/`. They are invoked automatically by the orchestrator — you never call them directly. Work that only applies a rubric or template to data the main session already holds is a **skill** instead (see Skills Reference below) — no sub-agent cold start, no isolation needed. Tracker and code-host mechanics live in the shared `tracker` skill and its `provider-*` skills.
+All 11 sub-agents live in `.claude/agents/`. They are invoked automatically by the orchestrator — you never call them directly. Work that only applies a rubric or template to data the main session already holds is a **skill** instead (see Skills Reference below) — no sub-agent cold start, no isolation needed. Tracker and code-host mechanics live in the shared `tracker` skill and its `provider-*` skills.
 
 ---
 
@@ -625,6 +642,11 @@ Fetches the CI run, failed jobs (log tail first) and linked MR/PR diff itself, f
 
 ---
 
+### `test-plan-reviewer`
+**Used by:** WAY 20 (and WAY 19, which runs it before approval)
+
+Reviews a test plan it didn't write: a scorecard out of 100 on nine dimensions, with evidence, and numbered ADD / REMOVE / MERGE / MODIFY proposals with a reason and a technique (equivalence partitioning, boundary values, decision table, state transition, pairwise, error guessing from bug history). Read-only: no file writes, no tracker. It keeps the coverage floor and never re-proposes what the Review log says you rejected.
+
 ### `user-story-enhancer`
 **Used by:** WAY 6
 
@@ -676,12 +698,12 @@ The single set of rules for analyzing requirements, so stories are scored agains
 5. **Checklists per element**: input field, ID/resource, upload, numeric, auth/session, concurrency, backend failure
 
 ### `test-plan`
-**Used by:** WAY 19 (`plan it`), WAY 1 and 4 (plan and approve before writing), WAY 11 and 14 (priorities, planned-not-written)
+**Used by:** WAY 19 (`plan it`), WAY 20 (review), WAY 1 and 4 (plan and approve before writing), WAY 11 and 14 (priorities, planned-not-written)
 
 The test plan format (the one definition), the approval flow (`plan-awaiting-approval` → `plan-approved`, or `plan-auto-approved` with `plan: auto`), and how plans change without renumbering. `scripts/plan-check.mjs` checks a plan and its test folder.
 
 ### WAY skills
-The 19 WAY skills hold each mode's full procedure; see **Nineteen Modes** above.
+The 20 WAY skills hold each mode's full procedure; see **Twenty Modes** above.
 
 ---
 

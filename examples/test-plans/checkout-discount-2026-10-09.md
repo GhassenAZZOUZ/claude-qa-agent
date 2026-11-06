@@ -8,7 +8,7 @@
 
 ## Scope
 - **In scope:** applying, rejecting and validating discount codes on `/checkout`
-- **Out of scope:** discount code administration (not in #148) · checkout performance (WAY 15 load tests)
+- **Out of scope:** discount code administration (not in #148) · checkout performance (WAY 15 load tests) · two-tab concurrency (single-tab checkout in v1)
 
 ## Levels
 | Level | Project | Used for |
@@ -42,7 +42,7 @@
 
 ## Environments & data
 - `--env staging` → https://staging.shop.example.com
-- Codes seeded on staging: `SAVE10` (valid, 10 %), `SUMMER24` (expired)
+- Codes seeded on staging: `SAVE10` (valid, 10 %), `SUMMER24` (expired, used by Test#02)
 - Guest checkout: no account needed
 
 ## Entry criteria
@@ -55,6 +55,11 @@
 ## Risks
 - Seeded codes expire or get deleted on staging → the tests fail as setup, not as bugs: `Given` steps check the seed first
 - Rounding of the discounted total is unspecified in #148 → Test#01 asserts the total shown, not a computed one
+
+## Review log
+| Date | Score | Applied | Rejected |
+|---|---|---|---|
+| 2026-10-09 | 78/100 | R1, M1 | A1 (user: single-tab checkout in v1, concurrency out of scope), M2 (user: the discount API isn't exposed to tests yet) |
 
 ## Retired
 | Test | Reason |

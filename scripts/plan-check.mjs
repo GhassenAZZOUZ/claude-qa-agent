@@ -1,20 +1,28 @@
 // Checks a test plan (format: .claude/skills/test-plan/SKILL.md) and, when its test folder
-// exists, that the folder holds exactly the planned tests. Run by WAY 1/4/19:
+// exists, that the folder holds exactly the planned tests. Run by WAY 1/4/19/20:
 //   node scripts/plan-check.mjs qa-artifacts/test-plans/<feature>-<date>.md [--folder <dir> | --plan-only]
+//        [--against <previous plan.md>] [--estimate [<runs dir>]] [--budget <minutes>]
+// --against: the coverage floor after a change (WAY 20): no requirement loses its positive or
+//   negative test, and no ID disappears (dropped IDs move to ## Retired)
+// --estimate: run time per test, from past runs (qa-artifacts/runs/*/results.json) or defaults;
+//   --budget: warn when the P0+P1 tests (what runs on every MR/PR) exceed it
 // Exit 1 on errors (printed as "✗ …"); warnings ("⚠ …") don't fail.
 import fs from 'fs';
 import path from 'path';
 
 const args = process.argv.slice(2);
-const planPath = args.find(a => !a.startsWith('--'));
-if (!planPath) { console.error('usage: plan-check.mjs <plan.md> [--folder <dir> | --plan-only]'); process.exit(2); }
-const folderArg = args.includes('--folder') ? args[args.indexOf('--folder') + 1] : null;
+const opt = name => { const i = args.indexOf(name); return i < 0 ? undefined : (args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : ''); };
+const valued = new Set(['--folder', '--against', '--estimate', '--budget'].map(opt).filter(Boolean));
+const planPath = args.find(a => !a.startsWith('--') && !valued.has(a));
+if (!planPath) { console.error('usage: plan-check.mjs <plan.md> [--folder <dir> | --plan-only] [--against <old.md>] [--estimate [<runs dir>]] [--budget <min>]'); process.exit(2); }
+const folderArg = opt('--folder') || null;
 
 const text = fs.readFileSync(planPath, 'utf8').replace(/\r\n/g, '\n');
 const errors = [], warnings = [];
 
 // Rows of the table under "## <heading>", as objects keyed by the header cells
-function table(heading) {
+function table(heading, src = text) {
+  const text = src;
   const m = text.match(new RegExp(`^## ${heading}\\s*$([\\s\\S]*?)(?=^## |^---\\s*$|(?![\\s\\S]))`, 'm'));
   if (!m) return null;
   const lines = m[1].split('\n').filter(l => l.trim().startsWith('|'));
@@ -65,12 +73,14 @@ for (const r of retired) {
 
 // Coverage floor: every requirement has a test (error). A missing positive or negative one is a warning:
 // a requirement that is itself a rejection ("expired code is rejected") has its negative test as its main flow
-// A Coverage cell like "— (the rejection is the main flow)" records why a gap is intended
+// A Coverage cell like "— (the rejection is the main flow)" records why a gap is intended, and
+// "✅ (8 and 64 rows)" that another category's rows cover it (a boundary Outline has both sides)
 const NEG = ['negative', 'security', 'permissions'];
+const coversOf = t => t.Covers.split(/[,\s]+/).filter(Boolean);
 const coverage = Object.fromEntries((table('Coverage') || []).map(c => [c.Requirement, c]));
-const explained = (r, col) => /^—\s*\(.+\)/.test(coverage[r.ID]?.[col] ?? '');
+const explained = (r, col) => /^(—|✅)\s*\(.+\)/.test(coverage[r.ID]?.[col] ?? '');
 for (const r of reqs) {
-  const mine = tests.filter(t => t.Covers.split(/[,\s]+/).includes(r.ID));
+  const mine = tests.filter(t => coversOf(t).includes(r.ID));
   if (!mine.length) { errors.push(`${r.ID} has no planned test`); continue; }
   if (!coverage[r.ID]) warnings.push(`${r.ID} has no line in ## Coverage`);
   if (!mine.some(t => t.Category === 'happy_path') && !explained(r, 'Positive')) warnings.push(`${r.ID} has no happy_path test: fine only when the requirement is itself a rejection (say so in ## Coverage)`);
@@ -89,6 +99,63 @@ if (folder && !args.includes('--plan-only') && fs.existsSync(folder)) {
       else if (!seen.has(id)) errors.push(`${id}.feature is not in the plan: add it to the plan or remove it`);
     }
   }
+}
+
+// Coverage floor against the previous version of this plan
+const against = opt('--against');
+if (against) {
+  const old = fs.readFileSync(against, 'utf8').replace(/\r\n/g, '\n');
+  const oldTests = table('Planned tests', old) || [];
+  const oldIds = [...oldTests, ...(table('Retired', old) || [])].map(t => t.Test);
+  const nowIds = new Set([...seen, ...retired.map(r => r.Test)]);
+  for (const id of oldIds) if (!nowIds.has(id)) errors.push(`${id} disappeared: a dropped test moves to ## Retired, its ID is never reused`);
+  for (const r of table('Requirements', old) || []) {
+    const had = cat => oldTests.some(t => coversOf(t).includes(r.ID) && cat(t.Category));
+    const has = cat => tests.some(t => coversOf(t).includes(r.ID) && cat(t.Category));
+    if (had(c => c === 'happy_path') && !has(c => c === 'happy_path')) errors.push(`coverage floor: ${r.ID} would lose its only happy_path test`);
+    if (had(c => NEG.includes(c)) && !has(c => NEG.includes(c))) errors.push(`coverage floor: ${r.ID} would lose its only negative test`);
+    if (had(() => true) && !has(() => true)) errors.push(`coverage floor: ${r.ID} would have no test`);
+  }
+}
+
+// Run time: median duration of each test's feature over past runs, else a default per level
+if (opt('--estimate') !== undefined) {
+  const runsDir = opt('--estimate') || path.join(path.dirname(planPath), '..', 'runs');
+  const DEFAULT_S = { ui: 20, api: 2 };
+  const samples = {};  // Test#nn -> [seconds per run]
+  const folderName = folderLine ? path.basename(folderLine.replace(/\/$/, '')) : null;
+  if (folderName && fs.existsSync(runsDir)) {
+    for (const run of fs.readdirSync(runsDir)) {
+      const f = path.join(runsDir, run, 'results.json');
+      if (!fs.existsSync(f)) continue;
+      let report; try { report = JSON.parse(fs.readFileSync(f, 'utf8')); } catch { continue; }
+      const perRun = {};
+      const walk = suite => {
+        for (const spec of suite.specs ?? []) {
+          const file = (spec.file ?? '').replace(/\\/g, '/');
+          const id = (file.match(/(Test#\d{2})\.feature/) || [])[1];
+          if (!id || !file.includes(`/${folderName}/`)) continue;
+          for (const t of spec.tests ?? []) perRun[id] = (perRun[id] ?? 0) + (t.results?.at(-1)?.duration ?? 0) / 1000;
+        }
+        (suite.suites ?? []).forEach(walk);
+      };
+      (report.suites ?? []).forEach(walk);
+      for (const [id, sec] of Object.entries(perRun)) (samples[id] ??= []).push(sec);
+    }
+  }
+  const median = a => { const s = [...a].sort((x, y) => x - y); return s[Math.floor((s.length - 1) / 2)]; };
+  const fmt = sec => sec >= 60 ? `${Math.floor(sec / 60)}m${String(Math.round(sec % 60)).padStart(2, '0')}s` : `${Math.round(sec)}s`;
+  let fast = 0, all = 0, measured = 0;
+  for (const t of tests) {
+    const rows = Number((t.Title.match(/Outline:\s*(\d+)\s*rows?/i) || [])[1] ?? 1);
+    const sec = samples[t.Test] ? median(samples[t.Test]) : (DEFAULT_S[t.Level] ?? 20) * rows;
+    if (samples[t.Test]) measured++;
+    console.log(`⏱ ${t.Test} ${t.Priority} ${t.Level} ${fmt(sec)} (${samples[t.Test] ? `median of ${samples[t.Test].length} runs` : `default ${DEFAULT_S[t.Level] ?? 20}s × ${rows} row${rows > 1 ? 's' : ''}`})`);
+    all += sec; if (['P0', 'P1'].includes(t.Priority)) fast += sec;
+  }
+  const budget = Number(opt('--budget'));
+  console.log(`⏱ P0+P1 ${fmt(fast)} · all ${fmt(all)} · ${measured}/${tests.length} measured${budget ? ` · budget ${budget}m` : ''} (serial, one worker)`);
+  if (budget && fast > budget * 60) warnings.push(`P0+P1 tests are estimated at ${fmt(fast)}, over the ${budget} min budget for every MR/PR`);
 }
 
 warnings.forEach(w => console.log('⚠ ' + w));
