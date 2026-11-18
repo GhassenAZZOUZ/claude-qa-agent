@@ -77,9 +77,9 @@ The one definition. `test-writer` writes it, `plan-check.mjs` checks it, WAY 1/4
 | Test#02 | <…> | negative | api | @api @negative @high | AC-01 | P1 |
 
 ## Coverage
-| Requirement | Tests | Positive | Negative | Required categories |
-|---|---|---|---|---|
-| AC-01 | Test#01, Test#02 | ✅ | ✅ | ✅ |
+| Requirement | Tests | Positive | Negative | Required categories | Status |
+|---|---|---|---|---|---|
+| AC-01 | Test#01, Test#02 | ✅ | ✅ | ✅ | full |
 
 ## Environments & data
 - <env from --env, accounts (`UI_TEST_USER`, `API_TEST_TOKEN`, …), seed data, feature flags>
@@ -89,6 +89,7 @@ The one definition. `test-writer` writes it, `plan-check.mjs` checks it, WAY 1/4
 
 ## Exit criteria
 - All P0 and P1 tests pass · no open sev-1/sev-2 on the feature · every `must` requirement covered and passing
+- Requirements whose Status isn't `full` are listed in the release report as unverified risk
 
 ## Risks
 - <risk> → <mitigation>
@@ -119,7 +120,28 @@ Rules:
   | `could` | P3 | same |
 
   The priority tag matches it: P0 `@critical`, P1 `@high`, P2 `@medium`, P3 `@low`
-- **Coverage**: one line per requirement. Positive = a `happy_path` row covers it. Negative = a `negative` (or `security` / `permissions` denial) row covers it, required when the requirement takes input or an action. Required categories = every category §4 marks required for it is present. A cell that is empty on purpose says why: a requirement that is itself a rejection ("expired code is rejected") has its negative test as its main flow. A cell covered by another category's rows says which (`✅ (8 and 64 rows)`: a boundary Outline has an accepted and a rejected side). `plan-check.mjs` fails a requirement with no test and warns on a missing positive or negative one
+- **Coverage**: one line per requirement. Positive = a `happy_path` row covers it. Negative = a `negative` (or `security` / `permissions` denial) row covers it, required when the requirement takes input or an action. Required categories = every category §4 marks required for it is present. A cell that is empty on purpose says why: a requirement that is itself a rejection ("expired code is rejected") has its negative test as its main flow. A cell covered by another category's rows says which (`✅ (8 and 64 rows)`: a boundary Outline has an accepted and a rejected side). `plan-check.mjs` fails a requirement with no test and warns on a missing positive or negative one. **Tests** lists exactly the rows whose Covers name the requirement: `plan-check.mjs` fails a mismatch
+- **Status** (`requirements-analysis` §6): how much of the requirement the runnable rows actually prove. Anything but `full` gives its reason after a colon:
+
+  | Status | When |
+  |---|---|
+  | `full` | every part of the requirement is asserted by a row that isn't `@blocked` or `@probe` |
+  | `partial: <the part not asserted>` | some part has no row, or only a weaker oracle than the requirement asks for |
+  | `known-gap: <gap or bug ref>` | the rows assert the required outcome and are `@known-gap @fail` (expected to fail until fixed) |
+  | `blocked: <missing contract or capability>` | the rows are `@blocked`: nothing runnable today. Split first (§6): only the dependent part is blocked |
+  | `not-observable: <why>` | no interface available to the test can set up or observe it; name the level that should cover it (unit, component) |
+
+  A count of covered requirements ("all 40 ACs covered") only counts `full`; give the others by status
+- **State tags** (`requirements-analysis` §6), set per row from what that row does, never for a whole section:
+
+  | Tag | Meaning | Effect |
+  |---|---|---|
+  | `@known-gap @fail` | asserts the required outcome against a recorded defect | runs; `test.fail()` keeps it green until the fix lands. Not filed as a new bug |
+  | `@blocked` | waits on a missing contract or capability (say which in the Title) | a placeholder: `write it` writes no file for it, `plan-check.mjs` expects none |
+  | `@probe` | documents current behavior on purpose | runs; never gates a release |
+  | `@race` | targets a timing window | a pass means "not reproduced in N attempts" |
+  | `@platform` | a platform guarantee, not the product's logic | at most P2; may run on a slower schedule |
+  | `@destructive` | changes shared environment state (restarts, deletes a type or tenant) | isolated, runs last, opt-in |
 - **IDs**: `Test#01` upward, two digits, never renumbered, never reused (Retired keeps them)
 - **Review log**: one line per review (`review-plan`), with the proposals applied and the ones the user rejected, so the next review doesn't propose them again. Optional until the first review
 - The body ends with the report footer above: it is filed verbatim as the `test-plan` issue

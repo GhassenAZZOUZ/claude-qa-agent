@@ -33,12 +33,12 @@
 | Test#05 | A second code is refused once one is applied | negative | ui | @e2e @negative @critical @checkout-discount | AC-04 | P0 |
 
 ## Coverage
-| Requirement | Tests | Positive | Negative | Required categories |
-|---|---|---|---|---|
-| AC-01 | Test#01 | ✅ | — (rejections are AC-02, AC-03, AC-04) | ✅ |
-| AC-02 | Test#02 | — (the rejection is the main flow) | ✅ | ✅ |
-| AC-03 | Test#03, Test#04 | — (valid input is Test#01) | ✅ | ✅ boundary, security |
-| AC-04 | Test#05 | — (the refusal is the main flow) | ✅ | ✅ |
+| Requirement | Tests | Positive | Negative | Required categories | Status |
+|---|---|---|---|---|---|
+| AC-01 | Test#01 | ✅ | — (rejections are AC-02, AC-03, AC-04) | ✅ | full |
+| AC-02 | Test#02 | — (the rejection is the main flow) | ✅ | ✅ | full |
+| AC-03 | Test#03, Test#04 | — (valid input is Test#01) | ✅ | ✅ boundary, security | full |
+| AC-04 | Test#05 | — (the refusal is the main flow) | ✅ | ✅ | full |
 
 ## Environments & data
 - `--env staging` → https://staging.shop.example.com

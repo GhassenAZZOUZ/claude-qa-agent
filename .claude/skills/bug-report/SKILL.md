@@ -104,6 +104,8 @@ Sev-[N] ([label]) / P[N] ([label]) — [one-sentence rationale]
 Check `test-execution-agent`'s result fields first. These are not product bugs:
 - `reason: "baseline created"`: the first run of a `@visual` step
 - `quarantined: true`: known flaky, tracked by `flaky-triage`
+- `known_gap: true` or `known_gap_fixed: true`: the defect is already recorded (the scenario is `@known-gap @fail`); a fixed one needs its tags removed, not a new bug
+- `probe: true`: a `@probe` scenario saw the documented behavior change. Report it; file only if the user asks
 - `failure_kind: locator`: run `test-healer` first. File only if it says `not-healable: element missing` (or the user rejects the heal)
 - `status: blocked` for network or setup reasons: report it in the session summary, but don't file it
 

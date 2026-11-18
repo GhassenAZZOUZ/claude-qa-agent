@@ -31,7 +31,7 @@ const replace = (from, to) => s => { assert.ok(s.includes(from), `example has no
 test('the example plan passes', () => {
   const r = check();
   assert.equal(r.status, 0, r.out);
-  assert.match(r.out, /5 planned tests, 4 requirements covered, 1 retired/);
+  assert.match(r.out, /5 planned tests, 4 requirements traced \(Status: 4 full\), 1 retired/);
 });
 
 test('a requirement with no planned test fails', () => {
@@ -121,8 +121,66 @@ test('--against: retiring a redundant test and adding one keeps the floor', () =
   const add = '| Test#07 | Code field rejects SQL injection | security | api | @api @security @negative @high | AC-03 | P1 |\n';
   const r = against(s => s
     .replace('| Test#03 | Code input rejects an XSS payload | security | ui | @e2e @security @negative @high @checkout-discount | AC-03 | P1 |\n', add)
-    .replace('| Test#06 | Duplicate', '| Test#03 | Covered by Test#07 at the api level |\n| Test#06 | Duplicate'));
+    .replace('| Test#06 | Duplicate', '| Test#03 | Covered by Test#07 at the api level |\n| Test#06 | Duplicate')
+    .replace('| AC-03 | Test#03, Test#04 |', '| AC-03 | Test#04, Test#07 |'));
   assert.equal(r.status, 0, r.out);
+});
+
+// Coverage is derived from the rows, and Status says how much runnable rows prove (requirements-analysis §6)
+const BLOCKED05 = s => s.replace('| A second code is refused once one is applied | negative | ui | @e2e @negative @critical',
+  '| A second code is refused once one is applied (blocked: #160 stacking API) | negative | ui | @e2e @negative @critical @blocked');
+
+test('Coverage Tests must list exactly the rows that cover the requirement', () => {
+  const r = check(replace('| AC-03 | Test#03, Test#04 |', '| AC-03 | Test#03, Test#05 |'));
+  assert.equal(r.status, 1);
+  assert.match(r.out, /AC-03: ## Coverage lists Test#05, which doesn't cover it/);
+  assert.match(r.out, /AC-03: ## Coverage misses Test#04, which covers it/);
+});
+
+test('Status must be a known value, with a reason unless full', () => {
+  const r = check(s => s.replace('| ✅ | full |\n| AC-02', '| ✅ | done |\n| AC-02').replace('| ✅ boundary, security | full |', '| ✅ boundary, security | partial |'));
+  assert.equal(r.status, 1);
+  assert.match(r.out, /AC-01: Status "done" must be full, or partial/);
+  assert.match(r.out, /AC-03: Status partial needs its reason after a colon/);
+});
+
+test('a requirement covered only by @blocked rows cannot be full, and its row needs no file', () => {
+  const full = check(BLOCKED05);
+  assert.equal(full.status, 1);
+  assert.match(full.out, /AC-04: Status is full but every test covering it is @blocked or @probe/);
+  const ok = check(s => BLOCKED05(s).replace('| AC-04 | Test#05 | — (the refusal is the main flow) | ✅ | ✅ | full |',
+    '| AC-04 | Test#05 | — (the refusal is the main flow) | ✅ | ✅ | blocked: #160 stacking API |'),
+    ['01', '02', '03', '04'].map(n => `Test#${n}.feature`));
+  assert.equal(ok.status, 0, ok.out);
+  assert.match(ok.out, /5 planned tests \(1 @blocked\), 4 requirements traced \(Status: 3 full, 1 blocked\)/);
+});
+
+test('@known-gap needs @fail, and a known-gap Status needs a @known-gap row', () => {
+  const r = check(s => s.replace('@e2e @negative @critical @checkout-discount | AC-04', '@e2e @negative @critical @known-gap @checkout-discount | AC-04')
+    .replace('| AC-02 | Test#02 | — (the rejection is the main flow) | ✅ | ✅ | full |', '| AC-02 | Test#02 | — (the rejection is the main flow) | ✅ | ✅ | known-gap: #171 |'));
+  assert.equal(r.status, 1);
+  assert.match(r.out, /Test#05: @known-gap and @fail go together/);
+  assert.match(r.out, /AC-02: Status is known-gap but no @known-gap row covers it/);
+  assert.match(r.out, /⚠ AC-04: a @known-gap row covers it, so its Status is known-gap, not full/);
+});
+
+test('a not-observable requirement may have no row: a warning, not an error', () => {
+  const r = check(s => s.replace('| Test#05 | A second code is refused once one is applied | negative | ui | @e2e @negative @critical @checkout-discount | AC-04 | P0 |\n', '')
+    .replace('| AC-04 | Test#05 | — (the refusal is the main flow) | ✅ | ✅ | full |', '| AC-04 | — | — | — | — | not-observable: the session store is internal; covered by unit tests |'));
+  assert.equal(r.status, 0, r.out);
+  assert.match(r.out, /⚠ AC-04 is not observable at this level \(the session store is internal; covered by unit tests\)/);
+});
+
+test('a @platform guarantee above P2 is a warning', () => {
+  const r = check(replace('| Test#03 | Code input rejects an XSS payload | security | ui | @e2e @security @negative @high', '| Test#03 | Code input rejects an XSS payload | security | ui | @e2e @security @negative @high @platform'));
+  assert.equal(r.status, 0, r.out);
+  assert.match(r.out, /⚠ Test#03: a @platform guarantee is at most P2/);
+});
+
+test('--estimate skips @blocked rows', () => {
+  const r = check(BLOCKED05, [], '--plan-only', '--estimate');
+  assert.match(r.out, /⏱ Test#05 P0 ui — \(@blocked, not run\)/);
+  assert.match(r.out, /P0\+P1 1m00s · all 2m20s/);
 });
 
 // --estimate: medians from past runs, defaults otherwise, and the P0+P1 budget

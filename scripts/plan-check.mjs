@@ -6,6 +6,9 @@
 //   negative test, and no ID disappears (dropped IDs move to ## Retired)
 // --estimate: run time per test, from past runs (qa-artifacts/runs/*/results.json) or defaults;
 //   --budget: warn when the P0+P1 tests (what runs on every MR/PR) exceed it
+// Also: Coverage's Tests cell matches the rows' Covers; the optional Status column (full | partial |
+//   known-gap | blocked | not-observable: <reason>) agrees with the rows' state tags; @known-gap goes
+//   with @fail; @blocked rows are placeholders (no .feature expected, not estimated)
 // Exit 1 on errors (printed as "✗ …"); warnings ("⚠ …") don't fail.
 import fs from 'fs';
 import path from 'path';
@@ -49,6 +52,9 @@ const CATEGORIES = ['happy_path', 'negative', 'edge_case', 'boundary', 'security
 const PRIO_TAG = { P0: '@critical', P1: '@high', P2: '@medium', P3: '@low' };
 const reqIds = new Set(reqs.map(r => r.ID));
 const seen = new Set();
+const tagsOf = t => (t.Tags || '').split(/\s+/).filter(Boolean);
+// @blocked rows are placeholders (requirements-analysis §6): no file is written for them, they never run
+const blocked = new Set(tests.filter(t => tagsOf(t).includes('@blocked')).map(t => t.Test));
 
 for (const t of tests) {
   const id = t.Test;
@@ -62,6 +68,9 @@ for (const t of tests) {
   if (t.Level === 'api' && !tags.includes('@api')) errors.push(`${id}: an api test is tagged @api`);
   if (!PRIO_TAG[t.Priority]) errors.push(`${id}: priority "${t.Priority}" must be P0–P3`);
   else if (!tags.includes(PRIO_TAG[t.Priority])) errors.push(`${id}: ${t.Priority} needs the ${PRIO_TAG[t.Priority]} tag`);
+  // A known gap asserts the required outcome and runs as test.fail(): the two tags only make sense together
+  if (tags.includes('@known-gap') !== tags.includes('@fail')) errors.push(`${id}: @known-gap and @fail go together (requirements-analysis §6)`);
+  if (tags.includes('@platform') && ['P0', 'P1'].includes(t.Priority)) warnings.push(`${id}: a @platform guarantee is at most P2 unless the product configures it (requirements-analysis §6)`);
   const covers = t.Covers.split(/[,\s]+/).filter(Boolean);
   if (!covers.length) errors.push(`${id}: Covers is empty (use "untraced")`);
   for (const c of covers) if (c !== 'untraced' && !reqIds.has(c)) errors.push(`${id}: covers ${c}, which is not in ## Requirements`);
@@ -79,10 +88,41 @@ const NEG = ['negative', 'security', 'permissions'];
 const coversOf = t => t.Covers.split(/[,\s]+/).filter(Boolean);
 const coverage = Object.fromEntries((table('Coverage') || []).map(c => [c.Requirement, c]));
 const explained = (r, col) => /^(—|✅)\s*\(.+\)/.test(coverage[r.ID]?.[col] ?? '');
+// Status (test-plan format): how much of the requirement runnable rows prove. Anything but full gives a reason
+const STATUS = /^(full|partial|known-gap|blocked|not-observable)\s*(?::\s*(.*\S))?\s*$/;
+const statusCount = {};
 for (const r of reqs) {
   const mine = tests.filter(t => coversOf(t).includes(r.ID));
-  if (!mine.length) { errors.push(`${r.ID} has no planned test`); continue; }
-  if (!coverage[r.ID]) warnings.push(`${r.ID} has no line in ## Coverage`);
+  const line = coverage[r.ID];
+  const hasStatus = line && 'Status' in line;
+  const m = hasStatus ? line.Status.match(STATUS) : null;
+  if (hasStatus && !m) errors.push(`${r.ID}: Status "${line.Status}" must be full, or partial / known-gap / blocked / not-observable followed by ": <reason>"`);
+  if (m) statusCount[m[1]] = (statusCount[m[1]] ?? 0) + 1;
+  if (!mine.length) {
+    if (m?.[1] === 'not-observable' && m[2]) warnings.push(`${r.ID} is not observable at this level (${m[2]}): make sure a lower level covers it`);
+    else errors.push(`${r.ID} has no planned test`);
+    continue;
+  }
+  if (!line) warnings.push(`${r.ID} has no line in ## Coverage`);
+  // The Tests cell is derived from the rows: it lists exactly the rows whose Covers name the requirement
+  if (line && 'Tests' in line) {
+    const listed = new Set(line.Tests.match(/Test#\d{2}/g) || []);
+    const actual = new Set(mine.map(t => t.Test));
+    const extra = [...listed].filter(x => !actual.has(x)), missing = [...actual].filter(x => !listed.has(x));
+    if (extra.length) errors.push(`${r.ID}: ## Coverage lists ${extra.join(', ')}, which ${extra.length > 1 ? "don't" : "doesn't"} cover it`);
+    if (missing.length) errors.push(`${r.ID}: ## Coverage misses ${missing.join(', ')}, which ${missing.length > 1 ? 'cover' : 'covers'} it`);
+  }
+  const runnable = mine.filter(t => !tagsOf(t).includes('@blocked') && !tagsOf(t).includes('@probe'));
+  if (m) {
+    const [, st, why] = m;
+    if (st !== 'full' && !why) errors.push(`${r.ID}: Status ${st} needs its reason after a colon`);
+    if (['full', 'partial'].includes(st) && !runnable.length) errors.push(`${r.ID}: Status is ${st} but every test covering it is @blocked or @probe`);
+    if (st === 'known-gap' && !mine.some(t => tagsOf(t).includes('@known-gap'))) errors.push(`${r.ID}: Status is known-gap but no @known-gap row covers it`);
+    if (st === 'blocked' && !mine.some(t => blocked.has(t.Test))) errors.push(`${r.ID}: Status is blocked but no @blocked row covers it`);
+    if (st === 'full' && mine.some(t => tagsOf(t).includes('@known-gap'))) warnings.push(`${r.ID}: a @known-gap row covers it, so its Status is known-gap, not full`);
+  } else if (!runnable.length) {
+    warnings.push(`${r.ID} is covered only by @blocked or @probe rows: add a Status column to ## Coverage`);
+  }
   if (!mine.some(t => t.Category === 'happy_path') && !explained(r, 'Positive')) warnings.push(`${r.ID} has no happy_path test: fine only when the requirement is itself a rejection (say so in ## Coverage)`);
   if (!mine.some(t => NEG.includes(t.Category)) && !explained(r, 'Negative')) warnings.push(`${r.ID} has no negative test: required when it takes input or an action (requirements-analysis §4)`);
 }
@@ -93,7 +133,10 @@ const folder = folderArg || (folderLine && path.join(path.dirname(planPath), '..
 if (folder && !args.includes('--plan-only') && fs.existsSync(folder)) {
   const written = new Set(fs.readdirSync(folder).map(f => (f.match(/^(Test#\d{2})\.feature$/) || [])[1]).filter(Boolean));
   if (written.size) {
-    for (const id of seen) if (!written.has(id)) errors.push(`${id} is planned but ${folder} has no ${id}.feature`);
+    for (const id of seen) {
+      if (blocked.has(id)) { if (written.has(id)) warnings.push(`${id} is @blocked but ${id}.feature exists: drop the tag if the contract landed, or the file`); }
+      else if (!written.has(id)) errors.push(`${id} is planned but ${folder} has no ${id}.feature`);
+    }
     for (const id of written) {
       if (retired.some(r => r.Test === id)) errors.push(`${id}.feature exists but the plan retired ${id}: remove it with the user's OK`);
       else if (!seen.has(id)) errors.push(`${id}.feature is not in the plan: add it to the plan or remove it`);
@@ -147,6 +190,7 @@ if (opt('--estimate') !== undefined) {
   const fmt = sec => sec >= 60 ? `${Math.floor(sec / 60)}m${String(Math.round(sec % 60)).padStart(2, '0')}s` : `${Math.round(sec)}s`;
   let fast = 0, all = 0, measured = 0;
   for (const t of tests) {
+    if (blocked.has(t.Test)) { console.log(`⏱ ${t.Test} ${t.Priority} ${t.Level} — (@blocked, not run)`); continue; }
     const rows = Number((t.Title.match(/Outline:\s*(\d+)\s*rows?/i) || [])[1] ?? 1);
     const sec = samples[t.Test] ? median(samples[t.Test]) : (DEFAULT_S[t.Level] ?? 20) * rows;
     if (samples[t.Test]) measured++;
@@ -161,4 +205,8 @@ if (opt('--estimate') !== undefined) {
 warnings.forEach(w => console.log('⚠ ' + w));
 errors.forEach(e => console.log('✗ ' + e));
 if (errors.length) process.exit(1);
-console.log(`✅ ${tests.length} planned tests, ${reqs.length} requirements covered, ${retired.length} retired`);
+// "Traced" counts requirements with a test; the Status breakdown says how many are actually proven
+const statusLine = Object.keys(statusCount).length
+  ? ` (Status: ${['full', 'partial', 'known-gap', 'blocked', 'not-observable'].filter(s => statusCount[s]).map(s => `${statusCount[s]} ${s}`).join(', ')})`
+  : '';
+console.log(`✅ ${tests.length} planned tests${blocked.size ? ` (${blocked.size} @blocked)` : ''}, ${reqs.length} requirements traced${statusLine}, ${retired.length} retired`);
