@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.4.0 — 2026-11-18
 
 Plans prove what the product does: every row is checked for what it actually proves, whether it can run, and whether its effort goes to the product or to the platform underneath. Learned from a plan for a Kubernetes operator API whose own review missed rows that proved nothing, an impossible fixture, and most runs spent on API-server behavior.
 
