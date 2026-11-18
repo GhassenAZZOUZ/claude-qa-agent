@@ -57,6 +57,9 @@ counting violations by `impact`.
 | Test#04 | 🩹 healed: button "Submit" → "Send" | confirm the rename is intended |
 | Test#05 | 📸 visual baseline created | compared from the next run |
 | Test#06 | 🧊 quarantined (flaky) | tracked in <flaky-test ref> |
+| Test#07 | 🕳️ known gap still present (`@known-gap @fail`) | tracked in <gap or bug ref> |
+| Test#08 | ✨ known gap passed: the defect looks fixed | confirm, then remove `@known-gap @fail` |
+| Test#09 | 🔎 probe: documented behavior changed | decide whether it's intended |
 
 (or "none")
 

@@ -1,6 +1,6 @@
 ---
 name: requirements-analysis
-description: Reference only — the single definition of how requirements are analyzed before tests or stories are written — intake (text, issue, enhanced story, spec, exploration session, approved test plan) into one requirements model, the readiness gate (Missing Information, vague wording), requirement IDs (AC-NN from stories, R-NN derived from plain text), the scenario categories and tag mapping, and the per-element test checklists. Applied inline by e2e-session, write-tests, integration-tests and traceability; read by test-writer, user-story-enhancer and user-story-format. Not a workflow on its own.
+description: Reference only — the single definition of how requirements are analyzed before tests or stories are written — intake (text, issue, enhanced story, spec, exploration session, approved test plan) into one requirements model, the readiness gate (Missing Information, vague wording), requirement IDs (AC-NN from stories, R-NN derived from plain text), the scenario categories and tag mapping, the per-element test checklists, and what each row must prove (product vs platform, contract vs current code, known gaps, async evidence, fixture feasibility, execution risks). Applied inline by e2e-session, write-tests, integration-tests and traceability; read by test-writer, user-story-enhancer and user-story-format. Not a workflow on its own.
 ---
 
 # requirements-analysis
@@ -116,6 +116,7 @@ For every element in the model, cover each applicable line. Each is a scenario (
 | **Auth / session** | guest · expired session or token mid-flow · insufficient role |
 | **Concurrency**: only when two actors or tabs can change the same resource | double submit · simultaneous edit (last write, or a conflict error, as specified) |
 | **Failure of a backend call**: only for actions that call one (submit, pay, save) | a failed or slow response shows an error and doesn't hang · retrying creates no duplicate |
+| **Asynchronous processing**: only when the outcome appears after the response (job, queue consumer, webhook, controller) | success observed for the current input (§6 "Proof it happened") · each failure reason distinct and readable · a stale result never shown as current · a retry or restart creates no duplicate effect |
 
 ### OpenAPI schema constraints
 
@@ -137,3 +138,19 @@ For a spec, each request property and parameter is an element, and each keyword 
 | `additionalProperties: false` | one unknown property → 4xx |
 
 Put JSON literals in the Examples column (`"AB"`, `91`, `null`) and the placeholder unquoted in the body (`{ "code": <code> }`), so `null` and numbers keep their type. The `required` "absent" row is its own Scenario, since an Outline row can't drop a key. Change only the property under test per row: every other property stays at a valid value.
+
+## 6. What a row proves
+
+§4 and §5 say what to cover. Before a scenario becomes a row, check that it proves something about the **product**, and that it can run. Ask two questions per row: *could it pass while the product is broken?* *could it fail while the product is fine?* A yes to either is fixed here, or the row is dropped.
+
+| Check | Rule |
+|---|---|
+| **Who can break it** | Name the component that implements the behavior. When the API is served by a platform (an API gateway, a framework's generated CRUD, the Kubernetes API server for a custom resource), the platform's own semantics (error shape, pagination, streaming, patch types, optimistic concurrency, its authorizer, rate limits) are **platform guarantees**: one sample row per behavior, tagged `@platform`, priority at most P2, unless the product configures that behavior (its schema, its roles, its rules). The product's own logic gets the remaining rows and the P0/P1s. The §5 OpenAPI checklist then applies to what the product's schema states, not to every platform option |
+| **Contract, not current code** | Sources often describe today's implementation ("the worker currently names files `export-{id}.csv`", "retries after 30 s in this version"). Assert the contract's properties (present, stable, unique per key), not the current format. A row that pins current behavior on purpose is tagged `@probe`: it documents, it doesn't gate a release |
+| **Known gap** | When the source records a defect, the row asserts the **required** outcome, is tagged `@known-gap @fail`, and its title names the gap or bug ref. playwright-bdd turns `@fail` into `test.fail()`: the run stays green while the defect exists and goes red the day it's fixed, which is when the tags come off. Never assert the defective behavior as if it were correct |
+| **Proof it happened** | For asynchronous processing, wait for evidence tied to the current input: a version or generation counter reaching the new value, an event about this resource, a timestamp after the change. "No error within N seconds" proves nothing. A change the product may ignore (a no-op update) doesn't prove a reprocess happened |
+| **"Never happens"** | A row asserting that something must not happen states its observation window and has a positive control: the same setup without the fault does produce it |
+| **Fixture feasibility** | Every precondition is created through an interface the test can use, and checked against that interface's own schema and rules. A state the dependency's validation forbids, or a server-owned field the client can't write, can't be a fixture at this level: that requirement goes to a lower level (unit, component), and its Coverage Status is `not-observable` |
+| **Execution** | How can the row fail for a reason that isn't the product? A window too short to hit (races: tag `@race`; a green run means "not reproduced in N attempts", never acceptance evidence) · shared global state (unique keys per test, not per run) · a cascade (deleting a type, tenant or namespace deletes every instance: `@destructive`, isolated, last) · a streaming response (a client that reads streams, or a server-side timeout) · a transient state that passes in milliseconds (read it from the write's response or an event, not a later GET) |
+| **Split, don't block** | When part of a requirement depends on a contract or capability that doesn't exist yet, plan the testable part now and mark only the dependent part `@blocked`. A whole requirement goes `@blocked` only when nothing of it is observable |
+| **Assumed platform behavior** | A row relying on platform behavior nobody has observed on the target environment (the exact status code for an invalid query option, whether a schema format is enforced) lists it in the plan's Entry criteria as "verify on <env>" |

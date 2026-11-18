@@ -478,7 +478,7 @@ It's filed as a `test-plan` issue labelled `plan-awaiting-approval` and shown to
 review plan #150       # or: review plan Plan: qa-artifacts/test-plans/checkout-discount-2026-10-09.md
 ```
 
-`plan it` runs it automatically before asking for approval (`review: off` to skip). A separate, read-only agent, `test-plan-reviewer`, which never wrote the plan, scores it out of 100 on nine dimensions with evidence: requirement coverage, required categories, element checklists, risk ↔ priority, redundancy, test level, traceability, assertable outcomes and feasibility (including the P0+P1 run time against `QA_PLAN_BUDGET_MIN`, default 10 min, from past runs or defaults). It can also use closed bugs from the last 90 days and `flaky-triage` data. Then it proposes changes, each with a reason and, for an addition, the test design technique:
+`plan it` runs it automatically before asking for approval (`review: off` to skip). A separate, read-only agent, `test-plan-reviewer`, which never wrote the plan, scores it out of 100 on ten dimensions with evidence: requirement coverage (with an honest Coverage Status), required categories, element checklists, risk ↔ priority & effort (product logic first, platform guarantees sampled), redundancy, test level, traceability, oracle validity, feasibility (including the P0+P1 run time against `QA_PLAN_BUDGET_MIN`, default 10 min, from past runs or defaults) and execution. Before scoring, it asks of every P0/P1 row: could it pass while the product is broken, or fail while the product is fine? It can also use closed bugs from the last 90 days and `flaky-triage` data. Then it proposes changes, each with a reason and, for an addition, the test design technique:
 
 | ID | Change | Test | Reason | Technique |
 |---|---|---|---|---|
@@ -645,7 +645,7 @@ Fetches the CI run, failed jobs (log tail first) and linked MR/PR diff itself, f
 ### `test-plan-reviewer`
 **Used by:** WAY 20 (and WAY 19, which runs it before approval)
 
-Reviews a test plan it didn't write: a scorecard out of 100 on nine dimensions, with evidence, and numbered ADD / REMOVE / MERGE / MODIFY proposals with a reason and a technique (equivalence partitioning, boundary values, decision table, state transition, pairwise, error guessing from bug history). Read-only: no file writes, no tracker. It keeps the coverage floor and never re-proposes what the Review log says you rejected.
+Reviews a test plan it didn't write: an adversarial pass on every P0/P1 row, a scorecard out of 100 on ten dimensions, with evidence, and numbered ADD / REMOVE / MERGE / MODIFY proposals with a reason and a technique (equivalence partitioning, boundary values, decision table, state transition, pairwise, error guessing from bug history). Read-only: no file writes, no tracker. It keeps the coverage floor and never re-proposes what the Review log says you rejected.
 
 ### `user-story-enhancer`
 **Used by:** WAY 6
