@@ -11,6 +11,6 @@ const rules = fs.readFileSync(path.join(root, 'CLAUDE.md'), 'utf8')
   .replaceAll('${CLAUDE_PLUGIN_ROOT}', root.replace(/\\/g, '/'));
 
 process.stdout.write(
-  `[DevOps QA Agent plugin is enabled: its skills and agents are named qa-agent:<name>, ` +
+  `[QA QualiGate plugin is enabled: its skills and agents are named qa-agent:<name>, ` +
   `its GitLab tools mcp__plugin_qa-agent_gitlab__<tool>.]\n\n${rules}`,
 );

@@ -1,4 +1,4 @@
-// Runner for DevOps QA Agent tests — meets test-execution-agent's "Playwright config contract".
+// Runner for QA QualiGate tests — meets test-execution-agent's "Playwright config contract".
 // Copy runner-template/ to ./qa-artifacts/, then `npm install && npx playwright install chromium`.
 import { defineConfig } from '@playwright/test';
 import { defineBddConfig } from 'playwright-bdd';

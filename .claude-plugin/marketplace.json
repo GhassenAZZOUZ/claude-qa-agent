@@ -1,6 +1,6 @@
 {
   "name": "devops-qa-agent",
-  "description": "DevOps QA Agent: QA workflows for Claude Code on GitLab, GitHub, Jira, Azure DevOps and Bitbucket",
+  "description": "QA QualiGate: QA workflows for Claude Code on GitLab, GitHub, Jira, Azure DevOps and Bitbucket",
   "owner": {
     "name": "Ghassen Azzouz",
     "url": "https://github.com/GhassenAZZOUZ"

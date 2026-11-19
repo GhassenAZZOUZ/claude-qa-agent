@@ -1,6 +1,6 @@
 ---
 name: qa-setup
-description: WAY 0 — prepare the current project for DevOps QA Agent — test runner in qa-artifacts/, issue tracker and code host (GitLab, GitHub, Jira, Azure DevOps, Bitbucket), per-project .env values, access check. Use when the user says "qa setup", "set up qa", "init qa agent", or when another WAY finds qa-artifacts/ or its settings missing.
+description: WAY 0 — prepare the current project for QA QualiGate — test runner in qa-artifacts/, issue tracker and code host (GitLab, GitHub, Jira, Azure DevOps, Bitbucket), per-project .env values, access check. Use when the user says "qa setup", "set up qa", "init qa agent", or when another WAY finds qa-artifacts/ or its settings missing.
 ---
 
 # WAY 0 — QA Setup

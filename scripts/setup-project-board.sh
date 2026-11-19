@@ -9,7 +9,7 @@
 set -euo pipefail
 
 OWNER="${1:-GhassenAZZOUZ}"
-REPO="${2:-claude-qa-agent}"
+REPO="${2:-qa-qualigate}"
 TITLE="QA Agent Roadmap"
 
 # issue | priority | effort | status. Ranking rules are in CONTRIBUTING.md ("Picking work").

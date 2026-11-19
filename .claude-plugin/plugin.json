@@ -1,14 +1,14 @@
 {
   "name": "qa-agent",
-  "displayName": "DevOps QA Agent",
+  "displayName": "QA QualiGate",
   "version": "1.4.0",
   "description": "QA workflows for Claude Code on any provider (GitLab, GitHub, Jira, Azure DevOps, Bitbucket): test plans reviewed and approved before code, Playwright-BDD UI E2E, API & API integration tests with accessibility checks, bug filing, fix verification, MR/PR test impact, flaky triage, test healing, exploratory testing, traceability, release readiness, load tests, CI setup.",
   "author": {
     "name": "Ghassen Azzouz",
     "url": "https://github.com/GhassenAZZOUZ"
   },
-  "homepage": "https://github.com/GhassenAZZOUZ/claude-qa-agent",
-  "repository": "https://github.com/GhassenAZZOUZ/claude-qa-agent",
+  "homepage": "https://github.com/GhassenAZZOUZ/qa-qualigate",
+  "repository": "https://github.com/GhassenAZZOUZ/qa-qualigate",
   "license": "MIT",
   "keywords": [
     "accessibility",

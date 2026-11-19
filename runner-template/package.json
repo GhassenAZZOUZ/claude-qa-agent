@@ -1,7 +1,7 @@
 {
   "name": "qa-runner",
   "private": true,
-  "description": "Playwright + playwright-bdd runner for tests written by DevOps QA Agent. Copy this folder to ./qa-artifacts/ and run npm install.",
+  "description": "Playwright + playwright-bdd runner for tests written by QA QualiGate. Copy this folder to ./qa-artifacts/ and run npm install.",
   "scripts": {
     "bddgen": "bddgen",
     "test:e2e": "bddgen && playwright test --project=e2e",
