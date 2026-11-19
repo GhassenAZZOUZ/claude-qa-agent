@@ -6,7 +6,7 @@ description: How to perform the tracker skill's operations on GitLab (gitlab.com
 # provider-gitlab
 
 **Tool:** the GitLab MCP server `@zereight/mcp-gitlab@2.2.1` (tool names and parameters checked against that version).
-- **Plugin install:** it ships with the plugin. Tools are named `mcp__plugin_qa-agent_gitlab__<tool>`, and the URL/token are plugin settings (`/plugin configure qa-agent@devops-qa-agent`)
+- **Plugin install:** it ships with the plugin. Tools are named `mcp__plugin_qualigate_gitlab__<tool>`, and the URL/token are plugin settings (`/plugin configure qualigate@qa-qualigate`)
 - **Clone install:** registered as `gitlab` in `.mcp.json`. Tools are named `mcp__gitlab__<tool>`
 
 Below, `<tool>` means whichever form is loaded. The config must set `GITLAB_TOOLSETS=core,issues,merge_requests,pipelines,ci` (an explicit list replaces the default, so `core` stays in it) and `GITLAB_TOOLS=upload_markdown`. If a tool is missing from `/mcp`, check those first.

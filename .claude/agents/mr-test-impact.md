@@ -1,7 +1,7 @@
 ---
 name: mr-test-impact
 description: Use to map a merge request / pull request's changes (GitLab, GitHub, Azure DevOps, Bitbucket) to the existing test suite — fetches the change and its diff, matches changed files/routes/endpoints/labels to Test#<nn> scenarios under qa-artifacts/test-cases, and returns a ranked selection (with reasons and confidence) plus the changed areas no test covers. Does not run tests or post comments; the mr-impact skill (WAY 11) does that. Keeps large diffs out of the main context.
-tools: Read, Grep, Glob, Bash, mcp__gitlab__get_merge_request, mcp__gitlab__list_merge_request_changed_files, mcp__gitlab__get_merge_request_diffs, mcp__plugin_qa-agent_gitlab__get_merge_request, mcp__plugin_qa-agent_gitlab__list_merge_request_changed_files, mcp__plugin_qa-agent_gitlab__get_merge_request_diffs
+tools: Read, Grep, Glob, Bash, mcp__gitlab__get_merge_request, mcp__gitlab__list_merge_request_changed_files, mcp__gitlab__get_merge_request_diffs, mcp__plugin_qualigate_gitlab__get_merge_request, mcp__plugin_qualigate_gitlab__list_merge_request_changed_files, mcp__plugin_qualigate_gitlab__get_merge_request_diffs
 ---
 
 # mr-test-impact

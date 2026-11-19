@@ -48,7 +48,7 @@ For each chosen provider, check the tool its skill needs:
 
 | Provider | Tool check |
 |---|---|
-| gitlab | `/mcp` shows the GitLab server connected (plugin: set the URL/token with `/plugin configure qa-agent@devops-qa-agent`; clone: `.mcp.json`) |
+| gitlab | `/mcp` shows the GitLab server connected (plugin: set the URL/token with `/plugin configure qualigate@qa-qualigate`; clone: `.mcp.json`) |
 | github | `gh auth status` |
 | jira | an Atlassian MCP server connected, **or** the REST settings above |
 | azure-devops | `az version` plus the `azure-devops` extension (`az extension add --name azure-devops`) |

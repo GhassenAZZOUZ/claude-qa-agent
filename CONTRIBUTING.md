@@ -38,10 +38,10 @@ Maintainers set Priority and Effort on new issues (the `project-board` workflow 
 - ★ Human-facing output templates end with the Output Watermark footer, and generated test files start with the watermark header (see `CLAUDE.md` → Output Watermark). This is a fixed policy, so don't remove it
 - ★ The step templates in `.claude/agents/test-writer.md` compile and run (`scripts/selftest.mjs`)
 - ★ `flaky-triage/flaky.mjs` passes its unit tests (`flaky.test.mjs`, fixtures in `__fixtures__/`)
-- ★ **Plugin-safe.** The repo root is also the `qa-agent` plugin:
+- ★ **Plugin-safe.** The repo root is also the `qualigate` plugin:
   - a new agent file must be added to the `agents` list in `.claude-plugin/plugin.json`
   - refer to files inside this repo as `${CLAUDE_PLUGIN_ROOT}/…`, never as a relative path
-  - an agent that lists GitLab or Playwright MCP tools in `tools:` lists both `mcp__<server>__<tool>` (clone) and `mcp__plugin_qa-agent_<server>__<tool>` (plugin)
+  - an agent that lists GitLab or Playwright MCP tools in `tools:` lists both `mcp__<server>__<tool>` (clone) and `mcp__plugin_qualigate_<server>__<tool>` (plugin)
   - plugin agents ignore `mcpServers` in frontmatter: an agent-scoped MCP server (as in `exploratory-tester`) must also be in `plugin.json` → `mcpServers`, with the same args
   - `CLAUDE.md` stays under ~9,500 characters, because the plugin hook injects it and Claude Code caps hook context at 10,000
 - Test IDs are `Test#<nn>`. Labels come only from the `tracker` skill's label conventions. Never call a provider directly from a WAY: use a `tracker` operation
