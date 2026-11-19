@@ -8,7 +8,7 @@ An autonomous QA agent for DevOps-oriented teams. Give it an issue (GitLab, GitH
 
 [![validate](https://github.com/GhassenAZZOUZ/qa-qualigate/actions/workflows/validate.yml/badge.svg)](https://github.com/GhassenAZZOUZ/qa-qualigate/actions/workflows/validate.yml)
 
-*Formerly DevOps QA Agent (`claude-qa-agent`). Old links redirect, and the plugin keeps its install ID `qa-agent@devops-qa-agent` until 2.0 ([#49](https://github.com/GhassenAZZOUZ/qa-qualigate/issues/49)).*
+*Formerly DevOps QA Agent (`claude-qa-agent`, plugin `qa-agent@devops-qa-agent`). Old links redirect. Upgrading from the old plugin: see [Upgrading from `qa-agent` (1.x)](#upgrading-from-qa-agent-1x).*
 
 **Quick start:** [Setup](#setup) · **Modes:** [Twenty Modes](#twenty-modes) · **See the output:** [examples/](examples/) · **Help wanted:** [Roadmap](#roadmap) · [Contributing](CONTRIBUTING.md)
 
@@ -70,7 +70,7 @@ Every generated `.feature`/`.steps.ts` test file starts with the same attributio
 
 ## Twenty Modes
 
-Each mode ("WAY") is a skill. Type a trigger phrase, or `/<skill>` directly (`/qa-agent:<skill>` with the plugin). Only the triggered WAY's instructions are loaded.
+Each mode ("WAY") is a skill. Type a trigger phrase, or `/<skill>` directly (`/qualigate:<skill>` with the plugin). Only the triggered WAY's instructions are loaded.
 
 | WAY | Skill | Trigger | What happens |
 |---|---|---|---|
@@ -198,7 +198,7 @@ Use it in any project, with updates through the marketplace. In Claude Code, fro
 
 ```
 /plugin marketplace add GhassenAZZOUZ/qa-qualigate
-/plugin install qa-agent@devops-qa-agent
+/plugin install qualigate@qa-qualigate
 ```
 
 Pick **project scope** when asked, so it's enabled only in repos where you do QA (an enabled plugin's skill list is in context every turn). If you use **GitLab**, Claude Code asks for its URL and token (kept in your system's secure credential store). Other providers leave those empty. Then:
@@ -207,9 +207,31 @@ Pick **project scope** when asked, so it's enabled only in repos where you do QA
 qa setup
 ```
 
-WAY 0 copies the test runner into `qa-artifacts/`, installs Playwright, asks which tracker and code host you use, adds the per-project values (`QA_TRACKER`, `GITHUB_REPO` / `JIRA_PROJECT_KEY` / …, `STAGING_URL`) to your `.env`, and checks access. Skills are named `/qa-agent:<skill>` (e.g. `/qa-agent:e2e-session`), but trigger phrases like `e2e it` work the same.
+WAY 0 copies the test runner into `qa-artifacts/`, installs Playwright, asks which tracker and code host you use, adds the per-project values (`QA_TRACKER`, `GITHUB_REPO` / `JIRA_PROJECT_KEY` / …, `STAGING_URL`) to your `.env`, and checks access. Skills are named `/qualigate:<skill>` (e.g. `/qualigate:e2e-session`), but trigger phrases like `e2e it` work the same.
 
-Update later with `/plugin marketplace update devops-qa-agent`. Change the GitLab settings with `/plugin configure qa-agent@devops-qa-agent`.
+Update later with `/plugin marketplace update qa-qualigate`. Change the GitLab settings with `/plugin configure qualigate@qa-qualigate`.
+
+### Upgrading from `qa-agent` (1.x)
+
+Formerly the plugin was `qa-agent` from the `devops-qa-agent` marketplace. Version 2.0 renames both, so Claude Code sees a new plugin. Replace the old one:
+
+```
+/plugin uninstall qa-agent@devops-qa-agent
+/plugin marketplace remove devops-qa-agent
+/plugin marketplace add GhassenAZZOUZ/qa-qualigate
+/plugin install qualigate@qa-qualigate
+/plugin configure qualigate@qa-qualigate    # only if you use GitLab: re-enter the URL and token
+```
+
+| What | 1.x (formerly) | 2.0 |
+|---|---|---|
+| Install ID | `qa-agent@devops-qa-agent` | `qualigate@qa-qualigate` |
+| Skill prefix | `/qa-agent:<skill>` | `/qualigate:<skill>` |
+| Bundled MCP tools | `mcp__plugin_qa-agent_gitlab__*`, `mcp__plugin_qa-agent_playwright__*` (formerly) | `mcp__plugin_qualigate_gitlab__*`, `mcp__plugin_qualigate_playwright__*` |
+| GitLab URL and token (plugin settings) | stored for `qa-agent` | re-enter once with `/plugin configure` (formerly stored under the old name) |
+| Trigger phrases (`e2e it`, `plan it`…), `.env`, `qa-artifacts/` | unchanged | unchanged |
+
+If your `.claude/settings.json` allows tools by name, rename any `mcp__plugin_qa-agent_` entries (formerly used) to `mcp__plugin_qualigate_`. Clones are not affected: they use `mcp__gitlab__*` and no prefix.
 
 ### Option B — Clone and work inside the repo
 
@@ -716,7 +738,7 @@ The 20 WAY skills hold each mode's full procedure; see **Twenty Modes** above.
 | Problem | Fix |
 |---|---|
 | Tracker / code host access fails | Run `qa setup` again: it checks each provider (GitLab MCP connected, `gh auth status`, Jira token or Atlassian MCP, `az` + PAT, Bitbucket token) |
-| GitLab MCP 401 error | Check the token (plugin: `/plugin configure qa-agent@devops-qa-agent`; clone: `.mcp.json`) has the `api` scope |
+| GitLab MCP 401 error | Check the token (plugin: `/plugin configure qualigate@qa-qualigate`; clone: `.mcp.json`) has the `api` scope |
 | GitHub labels missing | GitHub doesn't create labels on first use; `qa setup` offers to create the label set |
 | `test-execution-agent` fails to launch tests | Run `npx playwright install chromium` and confirm `npx playwright --version` works — it runs the toolchain locally via Bash, not through an MCP server |
 | Agent goes off-task | Ensure `CLAUDE.md` is in the project root; reload VS Code window |

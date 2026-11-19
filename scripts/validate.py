@@ -74,14 +74,14 @@ listed = {os.path.basename(a)[:-3] for a in manifest.get('agents', [])}
 if listed != names['agent']:
     errors.append(f'.claude-plugin/plugin.json agents mismatch: missing {sorted(names["agent"] - listed)}, extra {sorted(listed - names["agent"])}')
 
-# Agents restricted to bundled MCP tools must list both name forms (clone: mcp__<server>__*, plugin: mcp__plugin_qa-agent_<server>__*)
+# Agents restricted to bundled MCP tools must list both name forms (clone: mcp__<server>__*, plugin: mcp__plugin_<plugin name>_<server>__*)
 plugin_servers = set(manifest.get('mcpServers', {}))
 for p in glob.glob('.claude/agents/*.md'):
     fm = yaml.safe_load(open(p, encoding='utf-8').read().split('---')[1])
     tools = {t.strip() for t in str(fm.get('tools', '')).split(',')}
     for t in tools:
         server = t.split('__')[1] if t.startswith('mcp__') and t.count('__') >= 2 else None
-        if server in plugin_servers and t.replace(f'mcp__{server}__', f'mcp__plugin_qa-agent_{server}__') not in tools:
+        if server in plugin_servers and t.replace(f'mcp__{server}__', f'mcp__plugin_{manifest["name"]}_{server}__') not in tools:
             errors.append(f'{p}: {t} has no plugin-form twin')
     # An inline MCP server (clone) is ignored for plugin agents, so the plugin manifest must bundle the same one
     for entry in fm.get('mcpServers') or []:
@@ -125,11 +125,21 @@ for p in subprocess.run(['git', 'ls-files'], capture_output=True, text=True).std
     if p in LEGACY_OK or not os.path.isfile(p):
         continue
     try:
-        # a line that says so ("Formerly DevOps QA Agent …") may name it
-        if any('DevOps QA Agent' in line and 'ormerly' not in line for line in open(p, encoding='utf-8')):
-            errors.append(f'{p}: uses the former name "DevOps QA Agent". The product is QA QualiGate')
+        lines = open(p, encoding='utf-8').read().split('\n')
     except UnicodeDecodeError:
-        pass
+        continue
+    # a line that says so ("Formerly DevOps QA Agent …") may name it
+    if any('DevOps QA Agent' in line and 'ormerly' not in line for line in lines):
+        errors.append(f'{p}: uses the former name "DevOps QA Agent". The product is QA QualiGate')
+    # 2.0 renamed the plugin qa-agent@devops-qa-agent -> qualigate@qa-qualigate. The old names may stay in
+    # "Formerly" lines and in README's "Upgrading from `qa-agent`" section, which tells users how to move
+    in_upgrade = False
+    for line in lines:
+        if line.startswith('#'):
+            in_upgrade = line.startswith('### Upgrading from `qa-agent`')
+        if re.search(r'(?<![\w-])(qa-agent|devops-qa-agent)(?![\w-])', line) and 'ormerly' not in line and not in_upgrade:
+            errors.append(f'{p}: uses the former plugin name "{line.strip()[:60]}". The plugin is qualigate@qa-qualigate')
+            break
 
 if errors:
     print('\n'.join('✗ ' + e for e in errors)); sys.exit(1)

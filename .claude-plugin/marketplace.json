@@ -1,5 +1,5 @@
 {
-  "name": "devops-qa-agent",
+  "name": "qa-qualigate",
   "description": "QA QualiGate: QA workflows for Claude Code on GitLab, GitHub, Jira, Azure DevOps and Bitbucket",
   "owner": {
     "name": "Ghassen Azzouz",
@@ -7,7 +7,7 @@
   },
   "plugins": [
     {
-      "name": "qa-agent",
+      "name": "qualigate",
       "source": ".",
       "description": "QA workflows on any provider: Playwright-BDD UI E2E, API & API integration tests, bug filing, fix verification, MR/PR test impact, flaky triage, test healing, exploratory testing, release readiness, load tests.",
       "category": "testing",
