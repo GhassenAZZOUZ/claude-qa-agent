@@ -1,5 +1,5 @@
 {
-  "description": "Loads DevOps QA Agent's routing table and shared rules (CLAUDE.md) into each session, since plugins don't load CLAUDE.md",
+  "description": "Loads QA QualiGate's routing table and shared rules (CLAUDE.md) into each session, since plugins don't load CLAUDE.md",
   "hooks": {
     "SessionStart": [
       {

@@ -1,6 +1,6 @@
 # runner-template
 
-A ready-made Playwright + playwright-bdd runner for the tests DevOps QA Agent writes.
+A ready-made Playwright + playwright-bdd runner for the tests QA QualiGate writes.
 
 ```bash
 cp -r runner-template/. qa-artifacts/
