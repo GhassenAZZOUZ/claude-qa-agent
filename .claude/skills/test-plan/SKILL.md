@@ -127,7 +127,7 @@ Rules:
   |---|---|
   | `full` | every part of the requirement is asserted by a row that isn't `@blocked` or `@probe` |
   | `partial: <the part not asserted>` | some part has no row, or only a weaker oracle than the requirement asks for |
-  | `known-gap: <gap or bug ref>` | the rows assert the required outcome and are `@known-gap @fail` (expected to fail until fixed) |
+  | `known-gap: <ticket ref>` | the rows assert the required outcome and are `@known-gap` (expected to fail until fixed) |
   | `blocked: <missing contract or capability>` | the rows are `@blocked`: nothing runnable today. Split first (§6): only the dependent part is blocked |
   | `not-observable: <why>` | no interface available to the test can set up or observe it; name the level that should cover it (unit, component) |
 
@@ -136,11 +136,12 @@ Rules:
 
   | Tag | Meaning | Effect |
   |---|---|---|
-  | `@known-gap @fail` | asserts the required outcome against a recorded defect | runs; `test.fail()` keeps it green until the fix lands. Not filed as a new bug |
+  | `@known-gap @retries:0` | asserts the required outcome against a recorded defect; the Title names its tracker ticket | runs; the known-gap step marks it expected-to-fail only after its preconditions passed, so it stays green until the fix lands and a broken precondition is still red. Tracked by its ticket, not filed again; counted apart from the pass rate; a P0 known gap blocks the release unless its ticket carries an accepted exception (`release-readiness`) |
   | `@blocked` | waits on a missing contract or capability (say which in the Title) | a placeholder: `write it` writes no file for it, `plan-check.mjs` expects none |
-  | `@probe` | documents current behavior on purpose | runs; never gates a release |
-  | `@race` | targets a timing window | a pass means "not reproduced in N attempts" |
-  | `@platform` | a platform guarantee, not the product's logic | at most P2; may run on a slower schedule |
+  | `@probe` | documents current behavior on purpose | runs; never gates a release; its result is compared with a versioned baseline, so a change gets noticed |
+  | `@race @retries:0` | targets a timing window | a pass means "not reproduced in N attempts"; a failure is a defect, never quarantined as flaky |
+  | `@platform` | a platform guarantee consumers rely on, not the product's logic | at most P2; may run on a slower schedule |
+  | `@calibration` | checks a source's description of the platform | one run per platform version; never gates; a mismatch corrects the source or the row |
   | `@destructive` | changes shared environment state (restarts, deletes a type or tenant) | isolated, runs last, opt-in |
 - **IDs**: `Test#01` upward, two digits, never renumbered, never reused (Retired keeps them)
 - **Review log**: one line per review (`review-plan`), with the proposals applied and the ones the user rejected, so the next review doesn't propose them again. Optional until the first review

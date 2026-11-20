@@ -57,9 +57,12 @@ counting violations by `impact`.
 | Test#04 | 🩹 healed: button "Submit" → "Send" | confirm the rename is intended |
 | Test#05 | 📸 visual baseline created | compared from the next run |
 | Test#06 | 🧊 quarantined (flaky) | tracked in <flaky-test ref> |
-| Test#07 | 🕳️ known gap still present (`@known-gap @fail`) | tracked in <gap or bug ref> |
-| Test#08 | ✨ known gap passed: the defect looks fixed | confirm, then remove `@known-gap @fail` |
-| Test#09 | 🔎 probe: documented behavior changed | decide whether it's intended |
+| Test#07 | 🕳️ known gap still present (`@known-gap`) | tracked in <ticket ref>; unverified if the run's canary failed |
+| Test#08 | ✨ known gap passed: the defect looks fixed | confirm, close the ticket, remove `@known-gap` |
+| Test#09 | 🔎 probe: documented behavior changed (diff with the baseline) | decide whether it's intended, then update the baseline |
+| Test#10 | 📏 calibration: the source describes the platform wrongly | correct the source or the row |
+
+The pass rate excludes known gaps, probes and calibration rows; they're counted on their own line, so a known defect never looks like a pass.
 
 (or "none")
 

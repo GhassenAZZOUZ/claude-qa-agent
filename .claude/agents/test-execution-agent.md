@@ -93,9 +93,14 @@ Put the paths (and, for inline ones, the first few lines) in that scenario's `ar
 - **A step throws `NOT IMPLEMENTED: …` or `BLOCKED: …`** (written by `test-writer` when it lacked a detail, or a missing env value such as `API_TEST_TOKEN_B`) → `blocked`, `reason:` the message after the prefix.
 - **Locator timeout** (`waiting for getByRole(…)`, `locator.click: Timeout`) → still `fail`, but set `failure_kind: locator`. The caller runs `test-healer` before filing a bug, because a renamed element is often a test problem, not a product one.
 - **`@quarantine`-tagged scenario** fails → `fail` with `quarantined: true`. Callers don't file bugs for these (see the `flaky-triage` skill).
-- **`@known-gap @fail` scenario** (a recorded defect; playwright-bdd runs it as `test.fail()`). It failed as expected (`expectedStatus: "failed"`, outcome `expected`) → `pass` with `known_gap: true`: the defect is still there; report it as "KNOWN GAP (still present)", file nothing. It **passed** (outcome `unexpected`) → `fail` with `known_gap_fixed: true`: the defect looks fixed. Ask the user to confirm and remove `@known-gap @fail`; don't file a bug.
-- **`@probe` scenario** (documents current behavior) fails → `fail` with `probe: true`: the documented behavior changed. Report it; callers don't file it unless the user asks.
-- **`@race` scenario** passes → `pass`, reported as "not reproduced in <repetitions> attempts", never as proof the race is gone.
+- **`@known-gap` scenario** (a recorded defect; its known-gap step calls `test.info().fail()` once the preconditions passed). Read `expectedStatus` from the JSON report:
+  - failed with `expectedStatus: "failed"` (outcome `expected`) → `pass` with `known_gap: true`: the defect is still there; report "KNOWN GAP (still present)", file nothing
+  - failed with `expectedStatus: "passed"` → an ordinary `fail`: it broke **before** the known-gap step (fixture, setup, 500, timeout in a precondition), so it says nothing about the gap; handle it like any failure
+  - **passed** (outcome `unexpected`) → `fail` with `known_gap_fixed: true`: the defect looks fixed. Ask the user to confirm, close the ticket and remove `@known-gap`; don't file a bug
+  - when the run's end-of-run canary (or the scenario's liveness witness) failed, mark every `known_gap: true` of that run `known_gap_unverified: true`: a down product also "fails as expected"
+- **`@probe` scenario** (documents current behavior) fails, or its result differs from the versioned baseline → `fail` with `probe: true`: the documented behavior changed. Report it; callers don't file it unless the user asks.
+- **`@race` scenario** passes → `pass`, reported as "not reproduced in <repetitions> attempts", never as proof the race is gone. It fails → an ordinary `fail`: a reproduced defect, never a flaky.
+- **`@calibration` scenario** fails → `fail` with `calibration: true`: the source's description of the platform is wrong for this platform version. Report it; never filed as a product bug.
 
 ## Accessibility results
 
@@ -132,9 +137,11 @@ results:
     note: <e.g. "passed on network retry", null otherwise>
     failure_kind: assertion | locator | a11y | visual | network | null
     quarantined: true | false
-    known_gap: true | false          # @known-gap @fail failed as expected: the recorded defect is still there
-    known_gap_fixed: true | false    # @known-gap @fail passed: the defect looks fixed, remove the tags
+    known_gap: true | false          # @known-gap failed after its known-gap step: the recorded defect is still there
+    known_gap_unverified: true | false  # known_gap, but the run's canary or liveness witness failed: the product may just be down
+    known_gap_fixed: true | false    # @known-gap passed: the defect looks fixed, close the ticket and remove the tag
     probe: true | false              # @probe scenario: documents behavior, never filed on its own
+    calibration: true | false        # @calibration scenario: checks a source's description of the platform, never a product bug
     artifacts: { screenshot: <path>, trace: <path>, error_context: <path>, console_errors: <excerpt>, network_failures: <excerpt>, api_exchange: <path> }
     a11y:
       checked: true | false
