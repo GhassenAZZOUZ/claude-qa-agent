@@ -90,6 +90,7 @@ Draw labels only from this set, unless a WAY says otherwise. On Jira they're lab
 | `fix-failed` | Bug whose regression test still fails after a claimed fix | WAY 9 |
 | `performance` | Bug from a load-test threshold breach | WAY 15 |
 | `flaky-test` | Test (not product) issue: a quarantined flaky scenario | WAY 13 |
+| `exception-accepted` | Known-gap ticket whose defect the release owners accept for now; set by people, never by the agent | WAY 12 |
 | `release-readiness` | Go/no-go report for a milestone | WAY 12 |
 
 If a label doesn't exist yet, the provider skill says whether to create it or just apply it.

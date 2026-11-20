@@ -104,8 +104,10 @@ Sev-[N] ([label]) / P[N] ([label]) — [one-sentence rationale]
 Check `test-execution-agent`'s result fields first. These are not product bugs:
 - `reason: "baseline created"`: the first run of a `@visual` step
 - `quarantined: true`: known flaky, tracked by `flaky-triage`
-- `known_gap: true` or `known_gap_fixed: true`: the defect is already recorded (the scenario is `@known-gap @fail`); a fixed one needs its tags removed, not a new bug
+- `known_gap: true` or `known_gap_fixed: true`: the defect already has its ticket (the scenario is `@known-gap`); comment the run on that ticket instead. A fixed one needs its ticket closed and its tag removed, not a new bug. A `@known-gap` scenario that failed **before** its known-gap step carries neither flag: it's an ordinary failure, filed as usual
 - `probe: true`: a `@probe` scenario saw the documented behavior change. Report it; file only if the user asks
+- `calibration: true`: the source's description of the platform is wrong for this version; correct the source or the row, don't file a product bug
+- A failed `@race` scenario **is** filed: it reproduced the defect it hunts, it isn't flaky
 - `failure_kind: locator`: run `test-healer` first. File only if it says `not-healable: element missing` (or the user rejects the heal)
 - `status: blocked` for network or setup reasons: report it in the session summary, but don't file it
 

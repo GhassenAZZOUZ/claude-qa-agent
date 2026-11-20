@@ -19,6 +19,7 @@ If there are fewer than 3 runs, say so and suggest scheduling `e2e-session` runs
 ## Phase 2: Judge (don't just trust the flip rate)
 
 For each `flaky` scenario, read the error messages in its history:
+- **`@race` or `@known-gap` scenario** → never quarantined. A `@race` scenario fails only when it reproduces the defect it hunts: that's a bug to file (`bug-report`), not flakiness. A `@known-gap` scenario that flips is reported to the user against its ticket (the gap may be intermittent, or the known-gap step sits before a flaky precondition)
 - **Same error each time it fails** (timing, a race, animation) → real flakiness. Propose quarantine
 - **Different errors** → the app or data was changing between runs, not flakiness. Leave it alone
 - **`changedDuringWindow: true`** → the flips may be your own edits. Re-run triage after a few stable runs

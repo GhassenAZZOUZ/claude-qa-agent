@@ -7,8 +7,9 @@
 // --estimate: run time per test, from past runs (qa-artifacts/runs/*/results.json) or defaults;
 //   --budget: warn when the P0+P1 tests (what runs on every MR/PR) exceed it
 // Also: Coverage's Tests cell matches the rows' Covers; the optional Status column (full | partial |
-//   known-gap | blocked | not-observable: <reason>) agrees with the rows' state tags; @known-gap goes
-//   with @fail; @blocked rows are placeholders (no .feature expected, not estimated)
+//   known-gap | blocked | not-observable: <reason>) agrees with the rows' state tags; no @fail tag
+//   (known gaps use the known-gap step); @known-gap names a ticket; @known-gap and @race carry
+//   @retries:0; @blocked rows are placeholders (no .feature expected, not estimated)
 // Exit 1 on errors (printed as "✗ …"); warnings ("⚠ …") don't fail.
 import fs from 'fs';
 import path from 'path';
@@ -70,8 +71,11 @@ for (const t of tests) {
   if (t.Level === 'api' && !tags.includes('@api')) errors.push(`${id}: an api test is tagged @api`);
   if (!PRIO_TAG[t.Priority]) errors.push(`${id}: priority "${t.Priority}" must be P0–P3`);
   else if (!tags.includes(PRIO_TAG[t.Priority])) errors.push(`${id}: ${t.Priority} needs the ${PRIO_TAG[t.Priority]} tag`);
-  // A known gap asserts the required outcome and runs as test.fail(): the two tags only make sense together
-  if (tags.includes('@known-gap') !== tags.includes('@fail')) errors.push(`${id}: @known-gap and @fail go together (requirements-analysis §6)`);
+  // A known gap is marked expected-to-fail by its step, after the preconditions. @fail would expect any failure,
+  // a crash included; a retry would hide a reproduced gap or race
+  if (tags.includes('@fail')) errors.push(`${id}: no @fail tag: a known gap uses the known-gap step after its preconditions (requirements-analysis §6)`);
+  if (tags.includes('@known-gap') && !/#\d+|\b[A-Z][A-Z0-9]+-\d+\b/.test(t.Title)) warnings.push(`${id}: a @known-gap row names its tracker ticket in the Title (#142, SHOP-142)`);
+  for (const s of ['@known-gap', '@race']) if (tags.includes(s) && !tags.includes('@retries:0')) warnings.push(`${id}: ${s} needs @retries:0 (a retry would hide what it reproduces)`);
   if (tags.includes('@platform') && ['P0', 'P1'].includes(t.Priority)) warnings.push(`${id}: a @platform guarantee is at most P2 unless the product configures it (requirements-analysis §6)`);
   const covers = t.Covers.split(/[,\s]+/).filter(Boolean);
   if (!covers.length) errors.push(`${id}: Covers is empty (use "untraced")`);

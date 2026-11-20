@@ -21,12 +21,13 @@ description: WAY 12 — go / no-go report for a release or milestone. Use when t
 | CI | `ci.latest_run` on the branch. Its status, plus the `qa-*` jobs if `ci-test-setup` was done |
 | Flaky / quarantined | `flaky-triage` output if run in the last 7 days, otherwise count `@quarantine` tags |
 | Unverified requirements | the approved test plans of the milestone's stories: Coverage lines whose Status isn't `full` (`partial`, `known-gap`, `blocked`, `not-observable`), with their reason |
+| Known gaps | the plans' `@known-gap` rows (priority, ticket) and the latest results' `known_gap` / `known_gap_unverified` flags; an exception counts only when the gap's ticket is labelled `exception-accepted` |
 
 If a source can't be read, write "unknown" and say why. Never treat unknown as passing.
 
 ## Phase 2: Verdict
 
-- **NO-GO** if any of: an open `sev-1` or `sev-2` bug · any `fix-failed` · the latest CI run on the branch failed · the QA pass rate is below `--min-pass`
+- **NO-GO** if any of: an open `sev-1` or `sev-2` bug · any `fix-failed` · the latest CI run on the branch failed · the QA pass rate is below `--min-pass` (known gaps, probes and calibration rows are excluded from it and listed apart) · a P0 `@known-gap` still present whose ticket isn't labelled `exception-accepted` (a green known gap is an open defect, not a pass)
 - **GO WITH RISKS** if no NO-GO condition applies but any of: an open `sev-3` above `--allow-sev3` · untested stories · stories with open Missing Information · quarantined tests in milestone features · a `must` requirement whose Coverage Status isn't `full` (list each with its reason: these are unverified, not passed) · an "unknown" signal
 - **GO** otherwise
 

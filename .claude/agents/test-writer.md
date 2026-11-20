@@ -44,7 +44,7 @@ The caller also tells you the **scenario type**: `ui`, `api`, `integration` (WAY
 The caller says which one. Without a mode, WAY 2/3/17/18 calls are `write` as before.
 
 - **`plan`** (WAY 19, and WAY 1/4 without `Plan:`): do the **Scenario analysis** below and write only the plan, `./qa-artifacts/test-plans/<feature>-<YYYY-MM-DD>.md`, in the plan format of `${CLAUDE_PLUGIN_ROOT}/.claude/skills/test-plan/SKILL.md` (`Read` it), with `**Status:** draft`. One row per scenario you would write, with its category, level, tags, covers and priority as that format defines them. Write no `.feature`, `.steps.ts` or `Test#<nn>.md`. When the caller passes an existing plan path (a second spec, or changes), keep every existing row and ID and append. **Before returning, re-read the file you wrote**: apply the two §6 questions to every P0 and P1 row, check each Coverage line's Tests and Status against the rows (Status counts only what runnable rows assert), and check every state tag belongs to that row. Fix what you find, then return the path and the Planned tests table
-- **`write` from an approved plan** (input form 6): the plan **is** the scenario analysis. Write exactly its Planned tests rows into its `**Test folder:**`, one `Test#<nn>` per row with that row's ID, title (the Scenario name), tags and `**Covers:**`, at its level (`ui` steps or `api` steps). Don't add, drop, merge or renumber a row: if a row can't be written as planned (it needs a step you can't implement, or two rows are the same test), write the rest and return the row IDs with the reason, so the caller can change the plan. A planned ID whose files exist already is left as is unless the caller names it. A `@blocked` row is a placeholder: write no file for it and list it in the return. A `@known-gap` row keeps `@fail` on its Scenario's own tag line (playwright-bdd reads special tags from the scenario, not the feature). The index gets `**Plan:** <the plan's ref or path>` under `**Source:**`, and copies the plan's Requirements table when the IDs are `R-NN`
+- **`write` from an approved plan** (input form 6): the plan **is** the scenario analysis. Write exactly its Planned tests rows into its `**Test folder:**`, one `Test#<nn>` per row with that row's ID, title (the Scenario name), tags and `**Covers:**`, at its level (`ui` steps or `api` steps). Don't add, drop, merge or renumber a row: if a row can't be written as planned (it needs a step you can't implement, or two rows are the same test), write the rest and return the row IDs with the reason, so the caller can change the plan. A planned ID whose files exist already is left as is unless the caller names it. A `@blocked` row is a placeholder: write no file for it and list it in the return. A `@known-gap` row gets `@retries:0` on its Scenario's own tag line (playwright-bdd reads special tags from the scenario, not the feature) and the step `Then the known gap "<ticket>" is expected from here` right before the defect assertion, after every precondition step; never the `@fail` tag. A `@race` row gets `@retries:0` too. The index gets `**Plan:** <the plan's ref or path>` under `**Source:**`, and copies the plan's Requirements table when the IDs are `R-NN`
 
 ---
 
@@ -57,7 +57,7 @@ the per-element checklists. Don't restate or extend those rules here.
 1. **Model**: use the caller's confirmed model. Without one, build it per its §1, and derive `R-NN` per §3 when the source has no ACs
 2. **Gate** (§2, stories, issues and text only: specs and WAY 3 bug reports skip it): if the model isn't ready, or you derived `R-NN` the user hasn't confirmed, write nothing. Return the questions and the proposed Requirements table to the caller
 3. **Scenarios**: for each requirement, every category §4 marks required, plus every applicable §5 line for the elements it touches. For an enhanced issue, start from its ACs (and a legacy Test Scenarios table, if any), then add what §4/§5 still require
-4. **Prove it** (§6): name who can break each scenario (product or platform), assert the contract rather than the current code, give async waits evidence tied to the current input, check every fixture against the interface that creates it, and set the state tags it needs (`@known-gap @fail`, `@blocked`, `@probe`, `@race`, `@platform`, `@destructive`). Split a requirement that is only partly testable today
+4. **Prove it** (§6): name who can break each scenario (product or platform), assert the contract rather than the current code, give async waits evidence tied to the current input, check every fixture against the interface that creates it, observe the preconditions an outcome depends on, and set the state tags it needs (`@known-gap`, `@blocked`, `@probe`, `@race`, `@platform`, `@calibration`, `@destructive`, plus `@retries:0` on known gaps and races). Split a requirement that is only partly testable today
 5. **Trace**: every scenario cites the requirement IDs it covers (§3). A scenario that covers none is `untraced`
 
 ---
@@ -269,7 +269,7 @@ Tag those scenarios `@visual`. The step uses Playwright's `toHaveScreenshot` (te
 | Auth | `@auth` `@no-auth` |
 | Polarity | `@positive` `@negative` |
 | Scenario | `@edge-case` `@boundary` `@security` `@performance` `@visual` `@untraced` (category tags: `requirements-analysis` §4) |
-| State | `@known-gap @fail` · `@blocked` · `@probe` · `@race` · `@platform` · `@destructive`: from the plan row or `requirements-analysis` §6, set per scenario, never for a whole feature. `@quarantine`: added only by the `flaky-triage` skill with the user's approval, never by you |
+| State | `@known-gap @retries:0` (with the known-gap step, never `@fail`) · `@blocked` · `@probe` · `@race @retries:0` · `@platform` · `@calibration` · `@destructive`: from the plan row or `requirements-analysis` §6, set per scenario, never for a whole feature. `@quarantine`: added only by the `flaky-triage` skill with the user's approval, never by you |
 | Feature | `@[kebab-case-feature-name]` |
 
 ---
@@ -404,6 +404,13 @@ export function redact(h: Record<string, string>) {
 }
 
 export const { Given, When, Then, After } = createBdd(test);
+
+// Known gap (requirements-analysis §6): placed right before the defect assertion, after every precondition.
+// From here on a failure is expected; a failure in an earlier step stays a real failure. Not the @fail tag,
+// which would make any failure (a crash, a broken fixture) count as the expected one.
+Then('the known gap {string} is expected from here', async ({ $testInfo }, ticket: string) => {
+  $testInfo.fail(true, `known gap ${ticket}`);
+});
 ```
 
 ### `steps/common.steps.ts` — generic UI steps (template)

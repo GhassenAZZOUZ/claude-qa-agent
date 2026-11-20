@@ -161,13 +161,28 @@ test('a requirement covered only by @blocked rows cannot be full, and its row ne
   assert.match(ok.out, /5 planned tests \(1 @blocked\), 4 requirements traced \(Status: 3 full, 1 blocked\)/);
 });
 
-test('@known-gap needs @fail, and a known-gap Status needs a @known-gap row', () => {
+test('a known gap names its ticket and has @retries:0; a known-gap Status needs a @known-gap row', () => {
   const r = check(s => s.replace('@e2e @negative @critical @checkout-discount | AC-04', '@e2e @negative @critical @known-gap @checkout-discount | AC-04')
     .replace('| AC-02 | Test#02 | — (the rejection is the main flow) | ✅ | ✅ | full |', '| AC-02 | Test#02 | — (the rejection is the main flow) | ✅ | ✅ | known-gap: #171 |'));
   assert.equal(r.status, 1);
-  assert.match(r.out, /Test#05: @known-gap and @fail go together/);
+  assert.match(r.out, /⚠ Test#05: a @known-gap row names its tracker ticket/);
+  assert.match(r.out, /⚠ Test#05: @known-gap needs @retries:0/);
   assert.match(r.out, /AC-02: Status is known-gap but no @known-gap row covers it/);
   assert.match(r.out, /⚠ AC-04: a @known-gap row covers it, so its Status is known-gap, not full/);
+});
+
+test('the @fail tag is refused: a known gap uses the known-gap step', () => {
+  const r = check(replace('| A second code is refused once one is applied | negative | ui | @e2e @negative @critical',
+    '| A second code is refused once one is applied (known gap #171) | negative | ui | @e2e @negative @critical @known-gap @fail @retries:0'));
+  assert.equal(r.status, 1);
+  assert.match(r.out, /Test#05: no @fail tag: a known gap uses the known-gap step/);
+  assert.doesNotMatch(r.out, /names its tracker ticket|needs @retries:0/);
+});
+
+test('a @race row without @retries:0 is a warning', () => {
+  const r = check(replace('@e2e @negative @critical @checkout-discount | AC-04', '@e2e @negative @critical @race @checkout-discount | AC-04'));
+  assert.equal(r.status, 0, r.out);
+  assert.match(r.out, /⚠ Test#05: @race needs @retries:0/);
 });
 
 test('a not-observable requirement may have no row: a warning, not an error', () => {

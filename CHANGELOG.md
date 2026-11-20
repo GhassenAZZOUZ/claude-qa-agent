@@ -1,6 +1,16 @@
 # Changelog
 
-## Unreleased — release as 2.0.0 (breaking)
+## 2.0.1 — 2026-11-20
+
+Known gaps can't hide a crash any more, and oracles must observe the state they depend on. Learned from a second outside review of a Kubernetes operator plan written with 1.4.0 rules.
+
+- **Known gaps without `@fail`**: the `@fail` tag made *any* failure expected, so an operator crash or a broken fixture turned every known gap green, and a missing event (no reconcile) could look like a fix. A known gap is now `@known-gap @retries:0` plus the step `Then the known gap "<ticket>" is expected from here` (in the `steps/fixtures.ts` template), placed right before the defect assertion: it calls `test.info().fail()`, so a failing precondition stays red. Checked on the runner template: gap present → expected failure; precondition broken → real failure; gap fixed → unexpected pass. The row asserts the exact defect signature, adds a liveness witness when the defect is a timeout, and a canary replays at the end of the run. The Title names a tracker ticket: a gap ID in a spec isn't a ticket
+- **`requirements-analysis` §6**: new **Precondition proof** (observe the state an outcome depends on, e.g. a probe request colliding with a reservation; don't destroy the evidence first) and **Personas, not fixtures** (permission rows on shipped or standard roles; invented roles only test the platform's authorizer). "Never happens" reads an event stream opened before the action. Execution adds per-attempt unique keys and a recovery budget after injected faults. Hand-written platform descriptions are checked once (`@calibration`); only what consumers rely on stays `@platform`
+- **Results and releases**: `test-execution-agent` tells a known gap that failed *before* its step (an ordinary failure) from one that failed after it, marks known gaps `known_gap_unverified` when the run's canary failed, and adds `calibration`. A failed `@race` is filed as a defect; `flaky-triage` never quarantines `@race` or `@known-gap` scenarios. The pass rate excludes known gaps, probes and calibration rows. `release-readiness`: a P0 known gap still present is **NO-GO** unless its ticket carries the new `exception-accepted` label (set by people only)
+- **`plan-check.mjs`**: refuses `@fail`; warns when a `@known-gap` Title names no ticket and when `@known-gap` or `@race` lacks `@retries:0`. Unit tests updated (25 pass); `selftest.mjs` passes
+- Probes are compared with a versioned baseline, so a changed behaviour gets noticed
+
+## 2.0.0 (breaking)
 
 Renamed **DevOps QA Agent → QA QualiGate** ([#49](https://github.com/GhassenAZZOUZ/qa-qualigate/issues/49)). **Breaking:** the plugin is now `qualigate@qa-qualigate`; uninstall `qa-agent@devops-qa-agent` and install the new one (README, *Upgrading from `qa-agent` (1.x)*).
 
